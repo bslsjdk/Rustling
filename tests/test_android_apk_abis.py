@@ -45,10 +45,10 @@ class ApkAbis(unittest.TestCase):
             self.assertIn("starling-launcher-core", command)
 
 
-    def test_cargo_ndk_4_output_layout_is_supported(self):
-        source = (apk.HERE / "build_apk.py").read_text()
-        self.assertIn('ROOT / "target" / args.abi / profile_dir', source)
-        self.assertIn('ROOT / "target" / triple / profile_dir', source)
+    def test_library_crate_name_matches_the_packaged_library(self):
+        manifest = (apk.ROOT / "crates/starling-launcher-core/Cargo.toml").read_text()
+        self.assertIn(f'name = "{apk.LAUNCHER_LIBRARY}"', manifest)
+        self.assertIn('crate-type = ["rlib", "cdylib"]', manifest)
 
 
 class KotlinBuild(unittest.TestCase):

@@ -392,12 +392,8 @@ def main():
         build_library(args.profile, ndk, sdk, args.abi)
     profile_dir = "debug" if args.profile == "dev" else args.profile
     def built_library(name):
-        # cargo-ndk 4 uses target/<abi>; older releases used target/<triple>.
-        candidates = (
-            ROOT / "target" / args.abi / profile_dir / f"lib{name}.so",
-            ROOT / "target" / triple / profile_dir / f"lib{name}.so",
-        )
-        return next((path for path in candidates if path.is_file()), candidates[0])
+        # cargo-ndk uses Rust triples here, not Android ABI names.
+        return ROOT / "target" / triple / profile_dir / f"lib{name}.so"
     built = built_library(LIBRARY)
     launcher_built = built_library(LAUNCHER_LIBRARY)
     for path in (built, launcher_built):

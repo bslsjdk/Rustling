@@ -8,6 +8,7 @@ description = "Read-only Android launcher bridge and shared instance/mod snapsho
 publish = false
 
 [lib]
+name = "rustling_launcher"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
