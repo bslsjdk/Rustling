@@ -7,6 +7,7 @@ import zipfile
 
 
 def check(out: Path, abi: str) -> None:
+    assert abi in {"arm64-v8a", "armeabi-v7a", "x86", "x86_64"}, f"invalid Android ABI: {abi!r}"
     signature = "private static final native java.lang.String dispatch(java.lang.String);"
     javap = subprocess.run(
         ["javap", "-classpath", out / "classes.jar", "-private",

@@ -15,6 +15,11 @@ spec.loader.exec_module(check)
 
 
 class LauncherArtifacts(unittest.TestCase):
+    def test_empty_abi_is_rejected_before_searching(self):
+        with self.assertRaisesRegex(AssertionError, "invalid Android ABI"):
+            check.check(Path("unused"), "")
+
+
     def test_apk_with_the_bridge_is_accepted(self):
         with tempfile.TemporaryDirectory() as folder:
             out = Path(folder)
