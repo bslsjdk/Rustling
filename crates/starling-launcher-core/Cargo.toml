@@ -1,0 +1,27 @@
+[package]
+name = "starling-launcher-core"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version = "1.95"
+description = "Read-only Android launcher bridge and shared instance/mod snapshots"
+publish = false
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+horizon-client-core = { path = "../horizon-client-core" }
+horizon-mods = { path = "../horizon-mods", features = ["index"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21.1"
+
+[dev-dependencies]
+zip = { version = "9.1.3", default-features = false, features = ["deflate"] }
+
+[lints]
+workspace = true
