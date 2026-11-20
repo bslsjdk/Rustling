@@ -45,6 +45,12 @@ class ApkAbis(unittest.TestCase):
             self.assertIn("starling-launcher-core", command)
 
 
+    def test_cargo_ndk_4_output_layout_is_supported(self):
+        source = (apk.HERE / "build_apk.py").read_text()
+        self.assertIn('ROOT / "target" / args.abi / profile_dir', source)
+        self.assertIn('ROOT / "target" / triple / profile_dir', source)
+
+
 class KotlinBuild(unittest.TestCase):
     def test_kotlin_artifacts_are_pinned_and_facade_targets_jvm_8(self):
         self.assertEqual(apk.KOTLIN_VERSION, "1.9.20")

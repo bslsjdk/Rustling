@@ -884,6 +884,7 @@ impl Audio {
             Err("no output on a dedicated server".into())
         };
         let (stream, live) = match opened {
+            #[cfg(feature = "audio")]
             Ok(v) => (Some(v), true),
             Err(e) => {
                 if output {
