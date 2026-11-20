@@ -141,7 +141,7 @@ jobs:
         shell: bash
         run: |
           javap -classpath target/android/classes.jar -private io.github.juanluci.starling.RustlingCore | \
-            grep -F 'private final java.lang.String dispatch(java.lang.String);'
+            grep -F 'private static final native java.lang.String dispatch(java.lang.String);'
           python3 - "$ABI" <<'PY'
           import pathlib, sys, zipfile
           apk = next(pathlib.Path('target/android').glob(f'starling-*-{sys.argv[1]}.apk'))
