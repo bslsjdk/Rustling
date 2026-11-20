@@ -96,12 +96,12 @@ P0 没有第二写入者。P1 开启写入前必须满足：
 |---|---|
 | Rust 主机扫描与协议 | `cargo test -p starling-launcher-core`：8 个测试通过。覆盖 ping、错误/请求上限、两类模组、坏包、revision/Hook、命名空间冲突、目录与原生 build 指针。 |
 | 游戏原开关行为 | `cargo test -p horizon-client-render mod_list::tests --lib`：3 个测试通过。 |
-| Kotlin 编译 | Kotlin 1.9.20 实际编译 facade，`javap` 确认 class major 52（JVM 8）。 |
+| Kotlin 编译 | Kotlin 2.4.21 + coroutines 1.10.2 实际编译 facade，`javap` 确认 class major 52（JVM 8）。 |
 | Android target | `cargo check -p starling-launcher-core --target aarch64-linux-android` 通过。 |
 | APK / CI | [Android run 44784413009](https://github.com/bslsjdk/Rustling/actions/runs/44784413009) 使用 x86_64 GitHub runner 生成 Preview，不发布 Release；[checks run 44784420714](https://github.com/bslsjdk/Rustling/actions/runs/44784420714)。 |
 | 真机与旧路径 | 未跑真实游戏前，不宣称 UI、账号、存档、导入、重启和原生 Mod 已在设备回归。 |
 
-复现环境：Rust stable 1.100.0；JDK 21；Kotlin 1.9.20；项目锁定 Android platform 36、
+复现环境：Rust stable 1.100.0；JDK 21；Kotlin 2.4.21；项目锁定 Android platform 36、
 build-tools 35.0.0、NDK 28.2.13676358。Rust 测试只用临时目录，不读真实玩家目录。
 
 本机是 ARM64 Ubuntu，官方 NDK/build-tools 只提供 x86_64 宿主编译器；QEMU 的显式调用虽能运行工具，

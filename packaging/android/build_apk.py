@@ -61,13 +61,15 @@ TARGETS = {
 }
 LIBRARY = "horizon_android"
 LAUNCHER_LIBRARY = "rustling_launcher"
-KOTLIN_VERSION = "1.9.20"
+KOTLIN_VERSION = "2.4.21"
+COROUTINES_VERSION = "1.10.2"
 KOTLIN_ARTIFACTS = {
     "compiler": ("org.jetbrains.kotlin", "kotlin-compiler-embeddable"),
     "stdlib": ("org.jetbrains.kotlin", "kotlin-stdlib"),
     "reflect": ("org.jetbrains.kotlin", "kotlin-reflect"),
     "daemon": ("org.jetbrains.kotlin", "kotlin-daemon-embeddable"),
     "script": ("org.jetbrains.kotlin", "kotlin-script-runtime"),
+    "coroutines": ("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm"),
 }
 # Every LOAD segment aligned for 16 KB pages, which Android 15 devices may use.
 PAGE_FLAGS = "-C link-arg=-Wl,-z,max-page-size=16384"
@@ -226,13 +228,17 @@ def compile_kotlin(android_jar, classes):
     dependencies = {
         key: kotlin_dependency(group, name, KOTLIN_VERSION)
         for key, (group, name) in KOTLIN_ARTIFACTS.items()
+        if key != "coroutines"
     }
+    dependencies["coroutines"] = kotlin_dependency(
+        "org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm", COROUTINES_VERSION
+    )
     dependencies.update({
         "trove": kotlin_dependency("org.jetbrains.intellij.deps", "trove4j", "1.0.20200330"),
         "annotations": kotlin_dependency("org.jetbrains", "annotations", "13.0"),
     })
     compiler = ":".join(str(dependencies[key]) for key in
-                        ("compiler", "stdlib", "reflect", "daemon", "trove", "annotations"))
+                        ("compiler", "stdlib", "reflect", "daemon", "trove", "annotations", "coroutines"))
     run(
         "java", "-cp", compiler, "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
         "-no-stdlib", "-no-reflect", "-jvm-target", "1.8",

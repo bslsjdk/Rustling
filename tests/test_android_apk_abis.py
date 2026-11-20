@@ -53,7 +53,8 @@ class ApkAbis(unittest.TestCase):
 
 class KotlinBuild(unittest.TestCase):
     def test_kotlin_artifacts_are_pinned_and_facade_targets_jvm_8(self):
-        self.assertEqual(apk.KOTLIN_VERSION, "1.9.20")
+        self.assertEqual(apk.KOTLIN_VERSION, "2.4.21")
+        self.assertEqual(apk.COROUTINES_VERSION, "1.10.2")
         facade = (apk.HERE / "kotlin/io/github/juanluci/starling/RustlingCore.kt").read_text()
         self.assertIn('System.loadLibrary("rustling_launcher")', facade)
         self.assertIn('private external fun dispatch(request: String): String', facade)
