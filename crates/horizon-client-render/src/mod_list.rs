@@ -3,6 +3,7 @@
 //! mod is off until the player turns it on in Options > Mods. A native mod is
 //! built in, so on until turned off (`mod.<id>:false`); the launcher builds
 //! only the native mods whose line is `true`.
+use horizon_client_core::mod_settings::ModSettings;
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -41,6 +42,27 @@ pub struct ModList {
     pub installed: Vec<Installed>,
     /// Android: which game runs and which the next start runs, above the mods.
     pub native_game: Option<NativeGame>,
+}
+
+impl From<ModSettings> for ModList {
+    fn from(settings: ModSettings) -> Self {
+        Self {
+            enabled: settings.enabled,
+            disabled: settings.disabled,
+            keys: settings.keys,
+            ..Default::default()
+        }
+    }
+}
+
+impl ModList {
+    fn settings(&self) -> ModSettings {
+        ModSettings {
+            enabled: self.enabled.clone(),
+            disabled: self.disabled.clone(),
+            keys: self.keys.clone(),
+        }
+    }
 }
 
 /// Android: the game with native mods as the Mods page says it (game/native_builds.rs): the APK's
@@ -100,42 +122,10 @@ impl ModList {
             .unwrap_or_default()
     }
     pub fn parse(text: &str) -> Self {
-        let ids = |value: &str| -> BTreeSet<String> {
-            text.lines()
-                .filter_map(|l| l.split_once(':'))
-                .filter(|(_, v)| v.trim() == value)
-                .filter_map(|(k, _)| k.trim().strip_prefix("mod."))
-                .map(str::to_owned)
-                .collect()
-        };
-        let (enabled, disabled) = (ids("true"), ids("false"));
-        let mut keys: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
-        for (k, v) in text.lines().filter_map(|l| l.split_once(':')) {
-            // Mod ids have no dots; a key's name may.
-            if let Some((id, name)) = k
-                .trim()
-                .strip_prefix("key.")
-                .and_then(|r| r.split_once('.'))
-            {
-                let entry = keys.entry(id.to_owned()).or_default();
-                entry.insert(name.to_owned(), v.trim().to_owned());
-            }
-        }
-        Self {
-            enabled,
-            disabled,
-            keys,
-            ..Default::default()
-        }
+        ModSettings::parse(text).into()
     }
     pub fn serialize(&self) -> String {
-        let on = self.enabled.iter().map(|id| format!("mod.{id}:true\n"));
-        let off = self.disabled.iter().map(|id| format!("mod.{id}:false\n"));
-        let keys = self.keys.iter().flat_map(|(id, keys)| {
-            keys.iter()
-                .map(move |(name, key)| format!("key.{id}.{name}:{key}\n"))
-        });
-        on.chain(off).chain(keys).collect()
+        self.settings().serialize()
     }
     /// Mod `id`'s chosen keys, for `Mods::set_bindings`.
     pub fn keys_of(&self, id: &str) -> Vec<(&str, &str)> {
