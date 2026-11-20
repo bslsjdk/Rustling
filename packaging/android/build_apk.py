@@ -28,6 +28,7 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.request
 import zipfile
 from pathlib import Path
 
@@ -59,6 +60,15 @@ TARGETS = {
     "x86_64": ("x86_64-linux-android", "x86_64-linux-android", "x86_64-linux-android"),
 }
 LIBRARY = "horizon_android"
+LAUNCHER_LIBRARY = "rustling_launcher"
+KOTLIN_VERSION = "1.9.20"
+KOTLIN_ARTIFACTS = {
+    "compiler": ("org.jetbrains.kotlin", "kotlin-compiler-embeddable"),
+    "stdlib": ("org.jetbrains.kotlin", "kotlin-stdlib"),
+    "reflect": ("org.jetbrains.kotlin", "kotlin-reflect"),
+    "daemon": ("org.jetbrains.kotlin", "kotlin-daemon-embeddable"),
+    "script": ("org.jetbrains.kotlin", "kotlin-script-runtime"),
+}
 # Every LOAD segment aligned for 16 KB pages, which Android 15 devices may use.
 PAGE_FLAGS = "-C link-arg=-Wl,-z,max-page-size=16384"
 # A BuildId in the library, so the native tombstones in diagnostic ZIPs name it and its frames can be matched to
@@ -124,6 +134,7 @@ def build_library(profile, ndk, sdk, abi=ABI):
     run(
         "cargo", "ndk", "-t", abi, "--platform", MIN_SDK,
         "build", "--profile", profile, "-p", "horizon-android",
+        "-p", "starling-launcher-core",
         cwd=ROOT, env=env,
     )
 
@@ -187,6 +198,49 @@ def assets(out):
     return folder
 
 
+def kotlin_dependency(group, name, version):
+    """A pinned Maven artifact, from the Gradle cache or downloaded without invoking Gradle."""
+    cache = Path.home() / ".gradle/caches/modules-2/files-2.1" / group / name / version
+    if cache.is_dir():
+        found = sorted(cache.glob(f"*/{name}-{version}.jar"))
+        if found:
+            return found[0]
+    filename = f"{name}-{version}.jar"
+    target = Path(os.environ.get("GRADLE_USER_HOME", Path.home() / ".gradle"))
+    target = target / "rustling-kotlin" / filename
+    if not target.is_file():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        url = f"https://repo.maven.apache.org/maven2/{group.replace('.', '/')}/{name}/{version}/{filename}"
+        temporary = target.with_suffix(".part")
+        try:
+            with urllib.request.urlopen(url, timeout=90) as response, temporary.open("wb") as out:
+                shutil.copyfileobj(response, out)
+            temporary.replace(target)
+        finally:
+            temporary.unlink(missing_ok=True)
+    return target
+
+
+def compile_kotlin(android_jar, classes):
+    """Kotlin's JVM backend targeting the same Java 8 bytecode as the existing handwritten build."""
+    dependencies = {
+        key: kotlin_dependency(group, name, KOTLIN_VERSION)
+        for key, (group, name) in KOTLIN_ARTIFACTS.items()
+    }
+    dependencies.update({
+        "trove": kotlin_dependency("org.jetbrains.intellij.deps", "trove4j", "1.0.20200330"),
+        "annotations": kotlin_dependency("org.jetbrains", "annotations", "13.0"),
+    })
+    compiler = ":".join(str(dependencies[key]) for key in
+                        ("compiler", "stdlib", "reflect", "daemon", "trove", "annotations"))
+    run(
+        "java", "-cp", compiler, "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
+        "-no-stdlib", "-no-reflect", "-jvm-target", "1.8",
+        "-classpath", f"{android_jar}:{dependencies['stdlib']}",
+        "-d", classes, *sorted((HERE / "kotlin").rglob("*.kt")),
+    )
+
+
 def compile_java(build_tools, android_jar, out):
     """StarlingActivity and LauncherActivity (java/) as classes.dex."""
     classes, dex = out / "classes", out / "dex"
@@ -195,6 +249,7 @@ def compile_java(build_tools, android_jar, out):
         folder.mkdir()
     sources = sorted((HERE / "java").rglob("*.java")) + [out / "generated" / "io/github/juanluci/starling/R.java"]
     run("javac", "--release", "8", "-nowarn", "-classpath", android_jar, "-d", classes, *sources)
+    compile_kotlin(android_jar, classes)
     # A single archive also avoids cmd.exe's command-line limit on Windows.
     archive = out / "classes.jar"
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as jar:
@@ -337,8 +392,10 @@ def main():
         build_library(args.profile, ndk, sdk, args.abi)
     profile_dir = "debug" if args.profile == "dev" else args.profile
     built = ROOT / "target" / triple / profile_dir / f"lib{LIBRARY}.so"
-    if not built.is_file():
-        sys.exit(f"build_apk: {built} not built")
+    launcher_built = ROOT / "target" / triple / profile_dir / f"lib{LAUNCHER_LIBRARY}.so"
+    for path in (built, launcher_built):
+        if not path.is_file():
+            sys.exit(f"build_apk: {path} not built")
 
     out = ROOT / "target" / "android"
     out.mkdir(parents=True, exist_ok=True)
@@ -359,6 +416,9 @@ def main():
     dex = compile_java(build_tools, android_jar, out)
     libraries = build_launchers(ndk, out, args.abi)
     libraries[library.name] = library
+    launcher_library = out / f"lib{LAUNCHER_LIBRARY}.so"
+    run(ndk_tool(ndk, "llvm-strip"), "--strip-unneeded", "-o", launcher_library, launcher_built)
+    libraries[launcher_library.name] = launcher_library
     add_code(out / "base.apk", libraries, dex, out / "unsigned.apk", args.abi)
     aligned = out / "aligned.apk"
     run(tool(build_tools, "zipalign"), "-P", "16", "-f", "4", out / "unsigned.apk", aligned)

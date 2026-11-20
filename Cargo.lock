@@ -3848,6 +3848,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "starling-launcher-core"
+version = "0.1.0"
+dependencies = [
+ "horizon-client-core",
+ "horizon-mods",
+ "jni 0.21.1",
+ "serde",
+ "serde_json",
+ "sha2",
+ "zip",
+]
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
