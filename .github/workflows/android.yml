@@ -64,15 +64,39 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+      - name: Cache the pinned Android SDK and NDK
+        uses: actions/cache@v4
+        id: android-sdk
+        with:
+          path: |
+            ${{ env.ANDROID_HOME }}/build-tools/35.0.0
+            ${{ env.ANDROID_HOME }}/platforms/android-36
+            ${{ env.ANDROID_HOME }}/ndk/28.2.13676358
+          key: android-sdk-35.0.0-36-28.2.13676358
       - name: Install the build-tools, platform and NDK build_apk.py pins
+        if: steps.android-sdk.outputs.cache-hit != 'true' || always()
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
             "build-tools;35.0.0" "platforms;android-36" "ndk;28.2.13676358" > /dev/null
+      - name: Cache cargo-ndk
+        uses: actions/cache@v4
+        id: cargo-ndk
+        with:
+          path: ~/.cargo/bin/cargo-ndk
+          key: cargo-ndk-3.5.4
+      - name: Cache Kotlin's pinned Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/rustling-kotlin
+          key: kotlin-2.4.21-coroutines-1.10.2-trove-1.0.20200330-annotations-13.0
       - name: Install Rust for Android and cargo-ndk
         run: |
           rustup toolchain install stable --profile minimal --target ${{ matrix.target }}
           rustup default stable
-          cargo install cargo-ndk --version 3.5.4 --locked
+          if [ ! -x ~/.cargo/bin/cargo-ndk ]; then
+            cargo install cargo-ndk --version 3.5.4 --locked
+          fi
+          cargo ndk --version
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: android-${{ matrix.abi }}
