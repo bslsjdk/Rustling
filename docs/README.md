@@ -2,13 +2,19 @@
 
 To play, use [the launcher](../launcher/README.md); the project site is [playhorizon.dev](https://playhorizon.dev). These pages are for developers. What is being done now and next, the work board and how to help: [the hub](https://playhorizon.dev/hub) ([ROADMAP.md](../ROADMAP.md), [roadmap/README.md](../roadmap/README.md) for keeping it current).
 
+## Rustling Android product line
+
+- [Rustling 项目计划](rustling-plan.md)：中文 Android 启动器、实例、原生模组、整合包和 Java
+  移植管线的已讨论方向、复用边界与分阶段验收；确认后按阶段实施。
+- [P0 共享核心与 Android 桥接](rustling-launcher-core.md)：模块审计、只读协议、迁移/回滚和真实验证记录。
+
 ## Build and run
 
 - [AGENTS.md](../AGENTS.md) and [Architecture](architecture.md): where each part of the code lives, how `Game` is organised, which harness checks which area.
 - [Build from source](../README.md#build-from-source): your own copy of the game, resource preparation, `cargo run`.
 - [Build times](build-times.md): `tools/build_times.py` measures cold and incremental builds per crate and the critical path, writes a JSON report and a table, and compares two reports; the first numbers, Windows and Linux.
 - [Native client](native-client.md): options, controls, the dedicated server, `horizon-ctl` scripting, packaging, architecture.
-- [Host a server](hosting.md): install `horizon-server`, prepare the game files, first run, `server.toml`, the commands, the web panel, backups, services and Docker; what works today and what doesn't yet.
+- [Host a server](hosting.md): install `horizon-server`, prepare the game files, first run, `server.toml`, the commands, the web panel, backups, services, Docker, and the bot benchmark against vanilla.
 - [The anticheat](anticheat.md): the dedicated server's own checks, off unless `server.toml`'s `[anticheat]` turns them on: violation levels, setback, alerts, kicks, the log, and how to write a check.
 - [The chat filter](chat-filter.md): the dedicated server refuses hate slurs in chat, message commands, signs, anvil names and book titles: the list and its normalising, mutes, temporary bans, `[chat_filter]`.
 - [Hosting a server: design](server.md): `horizon-server`, the design and the plan: install, `server.toml`, the CLI, the web panel, backups, services, Docker, and the bot benchmark against vanilla.
@@ -19,7 +25,7 @@ To play, use [the launcher](../launcher/README.md); the project site is [playhor
 - [Graphics](graphics.md): the graphics settings screen (pages, search, descriptions), the graphics benchmark and what it measured.
 - [Server against Pumpkin](performance/server-vs-pumpkin.md): Horizon's server and Pumpkin (Rust) under the same bots at 0, 20, 60 and 100 players: tick time, CPU, memory, chunks, join; where Horizon loses, and how to run it again.
 - [Benchmark](benchmark.md): Horizon against vanilla 26.3 and vanilla with performance mods, on the same machine, world, path and settings: what is measured, how it is kept fair, how to reproduce it.
-- [Extras](extras.md): optional zoom, minimap, FPS and keystroke overlays and auto-reconnect, all off by default.
+- [Extras](extras.md): optional zoom, minimap, FPS and keystrokes overlays and auto-reconnect, all off by default.
 - [Narrator](narrator.md): vanilla's text-to-speech (Ctrl+B): the voices per platform, how screens record what they narrate, `horizon-ctl narration`, and where it still differs from vanilla.
 - [Shader packs](shaders.md): Horizon's own WGSL shader packs, how to make and check one (`horizon-shader`).
 - [Mods](mods.md): content mods (data) and native mods (Rust), how to make, install and publish them. [Native mods](native-mods.md): how the launcher builds them. [Native hook points modelled on NeoForge](native-hooks-neoforge.md): the proposal for new hooks.

@@ -41,6 +41,7 @@ members = [
     "crates/horizon-shader-api",
     "crates/horizon-release-sign",
     "crates/starling-account",
+    "crates/starling-launcher-core",
     "xtask",
 ]
 resolver = "2"
