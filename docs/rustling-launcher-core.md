@@ -98,7 +98,7 @@ P0 没有第二写入者。P1 开启写入前必须满足：
 | 游戏原开关行为 | `cargo test -p horizon-client-render mod_list::tests --lib`：3 个测试通过。 |
 | Kotlin 编译 | Kotlin 1.9.20 实际编译 facade，`javap` 确认 class major 52（JVM 8）。 |
 | Android target | `cargo check -p starling-launcher-core --target aarch64-linux-android` 通过。 |
-| APK / CI | 完整构建使用现有 `.github/workflows/android.yml` 的 x86_64 GitHub runner，生成 Preview，不发布 Release。 |
+| APK / CI | [Android run 44784413009](https://github.com/bslsjdk/Rustling/actions/runs/44784413009) 使用 x86_64 GitHub runner 生成 Preview，不发布 Release；[checks run 44784420714](https://github.com/bslsjdk/Rustling/actions/runs/44784420714)。 |
 | 真机与旧路径 | 未跑真实游戏前，不宣称 UI、账号、存档、导入、重启和原生 Mod 已在设备回归。 |
 
 复现环境：Rust stable 1.100.0；JDK 21；Kotlin 1.9.20；项目锁定 Android platform 36、
