@@ -7,7 +7,7 @@ fn tlm_register_renderers(
     let _ = context;
     let mesh = mod_api::MeshDefinition::new();
     let model = mod_api::LayerDefinition::create(mesh, 1, 1).bake_root();
-    let Ok(animation) = super::tlm_animation::animation_to_keyframe(
+    let Ok(animation) = crate::game::tlm_animation::animation_to_keyframe(
         r#"{"animations":{"idle":{"bones":{}}}}"#,
         "example",
         &model,
@@ -16,7 +16,7 @@ fn tlm_register_renderers(
     };
     renderers.register(
         "example:model".into(),
-        std::sync::Arc::new(super::tlm_render::AnimatedModelRenderer::new(
+        std::sync::Arc::new(crate::game::tlm_render::AnimatedModelRenderer::new(
             model,
             animation,
             "example:entity/model",
