@@ -1498,6 +1498,7 @@
   "starling.account.setup.ely_title": "登录 Ely.by",
   "starling.account.setup.offline_title": "离线游玩",
   "starling.account.setup.import": "从电脑导入文件",
+  "starling.account.setup.import_local": "使用本地游戏目录（无需下载）",
   "starling.account.setup.preparing": "登录完成，正在准备游戏文件…",
   "starling.skin.default": "默认",
   "starling.wardrobe.import_skin": "导入皮肤...",

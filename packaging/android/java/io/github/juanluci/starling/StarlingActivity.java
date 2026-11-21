@@ -82,6 +82,8 @@ public class StarlingActivity extends NativeActivity {
     private static final int MOD_PERMISSIONS = 3;
     /** The launcher's file picker (Horizon Android's): its answer goes to nativeDocumentResult. */
     private static final int PICK_DOCUMENT = 4101;
+    /** Local Minecraft folder picked for the in-device preparer (setup "import local folder"). */
+    private static final int PICK_GAME_DIR = 4102;
 
     /** The build with native mods this game runs (loadGame), or null for the APK's own. */
     private File modBuild;
@@ -139,6 +141,9 @@ public class StarlingActivity extends NativeActivity {
 
     /** The device language, for the launcher's own hardcoded strings (android_lib.rs). */
     private static native void onSystemLanguage(String language);
+
+    /** A local Minecraft folder chosen for the in-device preparer (android_lib.rs). */
+    private static native void onLocalGameDir(String path);
 
     /** The keyboard's height in window pixels, 0 when it is hidden (android_lib.rs). */
     private static native void onImeHeight(int pixels);
@@ -493,6 +498,41 @@ public class StarlingActivity extends NativeActivity {
         } else if (requestCode == PICK_DOCUMENT) {
             nativeDocumentResult(requestCode, resultCode,
                     data == null || data.getData() == null ? null : data.getData().toString());
+        } else if (requestCode == PICK_GAME_DIR) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                String path = realPathFromTreeUri(data.getData());
+                onLocalGameDir(path);
+            } else {
+                onLocalGameDir(null);
+            }
+        }
+    }
+
+    /**
+     * The real filesystem path behind a SAF tree URI, for the Rust preparer's std::fs. Primary
+     * shared storage's document ids look like "primary:26.3" -> /storage/emulated/0/26.3; a
+     * removable card's like "XXXX-XXXX:folder". Returns null when it cannot be resolved.
+     */
+    private String realPathFromTreeUri(Uri uri) {
+        try {
+            String id = DocumentsContract.getTreeDocumentId(uri);
+            if (id == null) return null;
+            int colon = id.indexOf(':');
+            if (colon < 0) return null;
+            String volume = id.substring(0, colon);
+            String relative = id.substring(colon + 1).replace('\\', '/');
+            String root;
+            if ("primary".equals(volume)) {
+                root = Environment.getExternalStorageDirectory().getPath();
+            } else {
+                // Removable storage: /storage/<volume id>.
+                root = "/storage/" + volume;
+            }
+            String path = relative.isEmpty() ? root : root + "/" + relative;
+            return new File(path).isDirectory() ? path : null;
+        } catch (Exception e) {
+            android.util.Log.w("starling", "cannot resolve picked game folder", e);
+            return null;
         }
     }
 
@@ -825,6 +865,24 @@ public class StarlingActivity extends NativeActivity {
                     startActivityForResult(intent, PICK_FILE);
                 } catch (ActivityNotFoundException e) {
                     // No picker: nothing to show.
+                }
+            }
+        });
+        return true;
+    }
+
+    /** Pick a local Minecraft folder (versions/libraries/assets) for the in-device preparer. */
+    public boolean pickGameDir() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                try {
+                    startActivityForResult(intent, PICK_GAME_DIR);
+                } catch (ActivityNotFoundException e) {
+                    onLocalGameDir(null);
                 }
             }
         });

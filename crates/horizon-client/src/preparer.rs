@@ -33,6 +33,24 @@ fn shared() -> MutexGuard<'static, Stage> {
         .unwrap_or_else(PoisonError::into_inner)
 }
 
+/// A Minecraft folder the player picked on the device, to prepare in place of the
+/// downloaded files. Set from JNI when the setup's folder picker returns.
+static LOCAL_GAME_DIR: OnceLock<Mutex<Option<PathBuf>>> = OnceLock::new();
+
+/// Remember (or clear) the local Minecraft folder the player picked.
+pub fn set_local_game_dir(path: Option<String>) {
+    let slot = LOCAL_GAME_DIR.get_or_init(|| Mutex::new(None));
+    let mut slot = slot.lock().unwrap_or_else(PoisonError::into_inner);
+    *slot = path.filter(|s| !s.is_empty())
+        .map(PathBuf::from)
+        .filter(|p| p.is_dir());
+}
+
+pub fn local_game_dir() -> Option<PathBuf> {
+    LOCAL_GAME_DIR.get()
+        .and_then(|slot| slot.lock().ok().and_then(|g| g.clone()))
+}
+
 /// Where the preparing is now.
 pub fn stage() -> Stage {
     shared().clone()
@@ -62,6 +80,16 @@ fn home() -> PathBuf {
 /// Prepare the fetched files into `resources` (the folder the game reads), on a thread of its
 /// own; `stage` follows it.
 pub fn start(resources: PathBuf) {
+    start_with(resources, None);
+}
+
+/// Prepare from a Minecraft folder the player picked on the device: no full game download,
+/// only the missing server jar is fetched. Falls back to the downloaded files if `local` is None.
+pub fn start_from_local(resources: PathBuf, local: PathBuf) {
+    start_with(resources, Some(local));
+}
+
+fn start_with(resources: PathBuf, local: Option<PathBuf>) {
     let Some(runtime) = starling_account::java::android_runtime(std::env::consts::ARCH) else {
         *shared() = Stage::Failed("On 32-bit x86, import prepared resources as a .starling file. An Android x86 Java 25 runtime is not available.".into());
         return;
@@ -80,7 +108,7 @@ pub fn start(resources: PathBuf) {
     let spawned = std::thread::Builder::new()
         .name("preparer".into())
         .spawn(move || {
-            let result = run(&resources, started);
+            let result = run(&resources, local.as_deref(), started);
             *shared() = match result {
                 Ok(()) => {
                     log::info!(
@@ -100,11 +128,50 @@ pub fn start(resources: PathBuf) {
     }
 }
 
-fn run(resources: &Path, started: Instant) -> Result<(), String> {
+/// The two files horizon-prepare needs that a local install may not have in the exact pinned
+/// form: Mojang's version JSON (Starling pins its hash) and the server jar. Fetched into the
+/// app's own folder so the player's Minecraft install is never rewritten. Everything else —
+/// client jar, libraries, assets — is read straight from the player's local folder via `Inputs`.
+struct LocalPinned {
+    version_json: PathBuf,
+    server_jar: PathBuf,
+}
+
+fn ensure_local_pinned() -> Result<LocalPinned, String> {
+    use starling_account::files::{Pins, Sources, Wanted};
+    let dir = home().join("local-import");
+    std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    let wanted = Wanted { server: true, libraries: false, assets: false };
+    let installed = starling_account::files::download(
+        &Sources::live(),
+        &Pins::starling(),
+        &dir,
+        wanted,
+        &|progress| {
+            if progress.bytes_total > 0 {
+                *shared() = Stage::Preparing(format!(
+                    "Downloading the server jar: {} / {}",
+                    progress.downloaded_bytes, progress.bytes_total
+                ));
+            }
+        },
+        &|| false,
+    )?;
+    let version = Pins::starling().version;
+    Ok(LocalPinned {
+        version_json: dir.join("versions").join(&version).join(format!("{version}.json")),
+        server_jar: installed.server_jar
+            .ok_or_else(|| "The pinned server jar is not listed by the game files.".into())?,
+    })
+}
+
+fn run(resources: &Path, local: Option<&Path>, started: Instant) -> Result<(), String> {
     let runtime = starling_account::java::android_runtime(std::env::consts::ARCH)
         .ok_or("No Java runtime is available for this architecture.")?;
-    let server_jar = crate::accounts::server_jar()
-        .ok_or("The game files are not all there: download them again.")?;
+    // With a local Minecraft folder the client jar, libraries and assets are already on the
+    // device and passed to the preparer through `Inputs`; only the pinned version JSON and server
+    // jar are fetched, into the app's own folder (never rewriting the player's install).
+    let minecraft_dir = local.unwrap_or(&crate::accounts::files_root()).to_path_buf();
     let library = crate::platform::library_dir().ok_or("Starling cannot find its own files.")?;
     let home = home();
     let kit = home.join("kit");
@@ -152,15 +219,36 @@ fn run(resources: &Path, started: Instant) -> Result<(), String> {
     if let Some(limit) = horizon_prepare::java::max_heap_mib() {
         log::info!("Horizon: 32-bit preparation Java heap limit: {limit} MiB");
     }
+    // Resolve the pinned JSON + server jar (downloading only those two when using a local
+    // folder), and point the preparer at the local client jar / libraries / assets.
+    let (server_jar, inputs) = match local {
+        Some(_) => {
+            let pinned = ensure_local_pinned()?;
+            let version = starling_account::files::Pins::starling().version;
+            let inputs = horizon_prepare::artifacts::Inputs {
+                version_json: Some(pinned.version_json),
+                client_jar: Some(minecraft_dir.join("versions").join(&version).join(format!("{version}.jar"))),
+                libraries_dir: Some(minecraft_dir.join("libraries")),
+                assets_dir: Some(minecraft_dir.join("assets")),
+                prism_dir: None,
+            };
+            (pinned.server_jar, inputs)
+        }
+        None => (
+            crate::accounts::server_jar()
+                .ok_or("The game files are not all there: download them again.")?,
+            horizon_prepare::artifacts::Inputs::default(),
+        ),
+    };
     *shared() = Stage::Preparing("Starting Java".into());
     let made = horizon_prepare::prepare(
         &horizon_prepare::Options {
             root: kit.clone(),
             import: true,
-            minecraft_dir: Some(crate::accounts::files_root()),
+            minecraft_dir: Some(minecraft_dir),
             server_jar: Some(server_jar),
             java_home: None,
-            inputs: Default::default(),
+            inputs,
             output: None,
         },
         &|line| {

@@ -127,6 +127,24 @@ extern "system" fn Java_io_github_juanluci_starling_StarlingActivity_onSystemLan
     }
 }
 
+/// `StarlingActivity.onLocalGameDir`: a Minecraft folder the player picked for the
+/// in-device preparer. Stored for setup to use instead of the downloaded files.
+#[unsafe(no_mangle)]
+extern "system" fn Java_io_github_juanluci_starling_StarlingActivity_onLocalGameDir(
+    mut env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+    path: jni::objects::JString,
+) {
+    if path.is_null() {
+        horizon_client::preparer::set_local_game_dir(None);
+        return;
+    }
+    let value = env.get_string(&path).ok()
+        .map(|s| String::from(s))
+        .filter(|s| !s.is_empty());
+    horizon_client::preparer::set_local_game_dir(value);
+}
+
 /// `StarlingActivity.onStorage`, called on the UI thread before the game's thread starts.
 #[unsafe(no_mangle)]
 extern "system" fn Java_io_github_juanluci_starling_StarlingActivity_onStorage(

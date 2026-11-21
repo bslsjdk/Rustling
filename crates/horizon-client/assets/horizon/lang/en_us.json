@@ -1498,6 +1498,7 @@
   "starling.account.setup.ely_title": "Log in to Ely.by",
   "starling.account.setup.offline_title": "Play offline",
   "starling.account.setup.import": "Files from a computer",
+  "starling.account.setup.import_local": "Use a local game folder (no download)",
   "starling.account.setup.preparing": "Sign-in complete. Preparing the game files…",
   "starling.skin.default": "Default",
   "starling.wardrobe.import_skin": "Import Skin...",

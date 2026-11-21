@@ -11,6 +11,9 @@ pub struct Hooks {
     /// Ask the player for a file; it arrives in the import inbox (`import::inbox_dir`). False when
     /// no picker could open.
     pub pick_file: fn() -> bool,
+    /// Ask the player for a Minecraft folder to prepare locally; its path arrives through
+    /// `preparer::set_local_game_dir`. False when no picker could open.
+    pub pick_game_dir: fn() -> bool,
     /// The system clipboard's text (None: empty or unreachable).
     pub clipboard_get: fn() -> Option<String>,
     /// Put text on the system clipboard; false when it could not.
@@ -54,6 +57,11 @@ pub fn open_folder(dir: &Path) -> Option<bool> {
 /// The platform's file picker; false without one.
 pub fn pick_file() -> bool {
     HOOKS.get().is_some_and(|h| (h.pick_file)())
+}
+
+/// The platform's folder picker for a local Minecraft install; false without one.
+pub fn pick_game_dir() -> bool {
+    HOOKS.get().is_some_and(|h| (h.pick_game_dir)())
 }
 
 /// The platform's clipboard: None without one registered, Some(None) when it holds no text.

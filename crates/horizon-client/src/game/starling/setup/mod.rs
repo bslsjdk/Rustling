@@ -99,6 +99,8 @@ enum Action {
     CopyCode,
     /// Pick the resources prepared on a computer (as the loading failure did).
     Pick,
+    /// Pick a local Minecraft folder (versions/libraries/assets) to prepare on the device.
+    PickLocalDir,
     /// After a failure: the step that failed, again.
     Retry,
     /// While it waits: to the water, back from it, or to the game's settings.
@@ -515,7 +517,7 @@ fn buttons(step: &Step) -> Vec<(String, Action)> {
             (tr("setup.microsoft"), Action::SignIn),
             (tr("setup.ely_title"), Action::Ely),
             (tr("setup.offline_title"), Action::Offline),
-            (tr("setup.import"), Action::Pick),
+            (tr("setup.import_local"), Action::PickLocalDir),
         ],
         Step::Offline => vec![
             (tr("setup.offline_title"), Action::PlayOffline),
@@ -529,6 +531,7 @@ fn buttons(step: &Step) -> Vec<(String, Action)> {
         Step::Talking(_) => vec![(tr("cancel"), Action::CancelSignIn)],
         Step::Failed(_) => vec![
             literal("Try again", Action::Retry),
+            (tr("setup.import_local"), Action::PickLocalDir),
             (tr("setup.import"), Action::Pick),
         ],
         Step::SignInFailed(_) => vec![
@@ -650,6 +653,15 @@ impl Loading {
             return;
         }
         if preparer::running() {
+            return;
+        }
+        // A Minecraft folder the player picked on the device: prepare from it directly, no
+        // full game download. The path arrived through JNI (preparer::set_local_game_dir).
+        if !self.setup.prepared
+            && preparer::stage() == Stage::Idle
+            && let Some(local) = preparer::local_game_dir()
+        {
+            preparer::start_from_local(self.vanilla_root.clone(), local);
             return;
         }
         match (accounts::files(), accounts::state()) {
@@ -1107,6 +1119,11 @@ impl Loading {
             Action::Pick => {
                 if !horizon_client::platform::pick_file() {
                     log::warn!("Horizon: no file picker to import resources with");
+                }
+            }
+            Action::PickLocalDir => {
+                if !horizon_client::platform::pick_game_dir() {
+                    log::warn!("Horizon: no folder picker to import a local game with");
                 }
             }
             Action::Fish => self.setup.fishing_open = true,

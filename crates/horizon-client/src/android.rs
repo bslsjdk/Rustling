@@ -155,6 +155,11 @@ fn pick_file() -> bool {
         .unwrap_or(false)
 }
 
+fn pick_game_dir() -> bool {
+    with_activity(|env, activity| env.call_method(activity, "pickGameDir", "()Z", &[])?.z())
+        .unwrap_or(false)
+}
+
 fn clipboard_get() -> Option<String> {
     with_activity(|env, activity| {
         let text = env
@@ -1601,6 +1606,7 @@ pub fn main(
     crate::platform::set(crate::platform::Hooks {
         open_folder,
         pick_file,
+        pick_game_dir,
         clipboard_get,
         clipboard_set,
         open_link,
