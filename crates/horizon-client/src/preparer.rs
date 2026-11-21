@@ -36,19 +36,31 @@ fn shared() -> MutexGuard<'static, Stage> {
 /// A Minecraft folder the player picked on the device, to prepare in place of the
 /// downloaded files. Set from JNI when the setup's folder picker returns.
 static LOCAL_GAME_DIR: OnceLock<Mutex<Option<PathBuf>>> = OnceLock::new();
+/// Whether a preparation has been started for the currently picked local folder. Reset when a
+/// new folder is picked so a retry after a failure can start again, without re-triggering every
+/// frame while a failed stage is showing.
+static LOCAL_STARTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// Remember (or clear) the local Minecraft folder the player picked.
 pub fn set_local_game_dir(path: Option<String>) {
     let slot = LOCAL_GAME_DIR.get_or_init(|| Mutex::new(None));
     let mut slot = slot.lock().unwrap_or_else(PoisonError::into_inner);
-    *slot = path.filter(|s| !s.is_empty())
-        .map(PathBuf::from)
-        .filter(|p| p.is_dir());
+    // Java already checked the folder. Don't re-check with is_dir() here: on scoped storage a
+    // direct stat can be refused even when SAF granted access, which would silently drop a
+    // valid path. If it really is unreadable, the preparation reports that instead.
+    let dir = path.filter(|s| !s.is_empty()).map(PathBuf::from);
+    LOCAL_STARTED.store(false, std::sync::atomic::Ordering::Relaxed);
+    *slot = dir;
 }
 
 pub fn local_game_dir() -> Option<PathBuf> {
     LOCAL_GAME_DIR.get()
         .and_then(|slot| slot.lock().ok().and_then(|g| g.clone()))
+}
+
+/// Whether the picked folder has already been handed to the preparer.
+pub fn local_started() -> bool {
+    LOCAL_STARTED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
 /// Where the preparing is now.
@@ -86,6 +98,7 @@ pub fn start(resources: PathBuf) {
 /// Prepare from a Minecraft folder the player picked on the device: no full game download,
 /// only the missing server jar is fetched. Falls back to the downloaded files if `local` is None.
 pub fn start_from_local(resources: PathBuf, local: PathBuf) {
+    LOCAL_STARTED.store(true, std::sync::atomic::Ordering::Relaxed);
     start_with(resources, Some(local));
 }
 

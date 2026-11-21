@@ -668,7 +668,8 @@ impl Loading {
         // A Minecraft folder the player picked on the device: prepare from it directly, no
         // full game download. The path arrived through JNI (preparer::set_local_game_dir).
         if !self.setup.prepared
-            && preparer::stage() == Stage::Idle
+            && !preparer::local_started()
+            && matches!(preparer::stage(), Stage::Idle | Stage::Failed(_))
             && let Some(local) = preparer::local_game_dir()
         {
             preparer::start_from_local(self.vanilla_root.clone(), local);
