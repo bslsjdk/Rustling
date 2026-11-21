@@ -247,7 +247,7 @@ extern "system" fn Java_io_github_juanluci_starling_DiagnosticsActivity_makeRepo
             )
         },
     ))
-    .unwrap_or_else(|_| Err(crate::i18n_launcher::tr("Diagnostic worker failed", "诊断工作线程失败").into()));
+    .unwrap_or_else(|_| Err(horizon_client::i18n_launcher::tr("Diagnostic worker failed", "诊断工作线程失败").into()));
     match result {
         Ok(text) => env
             .new_string(text)

@@ -19,6 +19,10 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
+      arm64_only:
+        description: Build only the arm64-v8a APK (fast iteration; turn off before release)
+        type: boolean
+        default: true
       keep_symbols:
         description: Ship the library unstripped, for a profiler (simpleperf) to name its functions
         type: boolean
@@ -53,6 +57,9 @@ jobs:
           - { abi: armeabi-v7a, target: armv7-linux-androideabi }
           - { abi: x86, target: i686-linux-android }
           - { abi: x86_64, target: x86_64-linux-android }
+        # Manual fast iteration can build just arm64; push/PR/tag keep all four ABIs so
+        # devices on 32-bit ARM or x86 are still covered before a release.
+        exclude: ${{ fromJSON(inputs.arm64_only && '[{"abi":"armeabi-v7a"},{"abi":"x86"},{"abi":"x86_64"}]' || '[]') }}
     # The release key's environment, for a release build only (none otherwise).
     environment: ${{ (github.repository == 'starling-client/starling' && (startsWith(github.ref, 'refs/tags/v') || inputs.release_key)) && 'release' || '' }}
     runs-on: ubuntu-latest
@@ -68,16 +75,26 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+      - name: Cache the Android NDK, build-tools and platform
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.ANDROID_HOME }}/ndk/28.2.13676358
+            ${{ env.ANDROID_HOME }}/build-tools/35.0.0
+            ${{ env.ANDROID_HOME }}/platforms/android-36
+          key: android-sdk-ndk28.2.13676358-bt35.0.0-p36
       - name: Install the build-tools, platform and NDK build_apk.py pins
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
             "build-tools;35.0.0" "platforms;android-36" "ndk;28.2.13676358" > /dev/null
-      - name: Install Rust for Android and cargo-ndk
+      - name: Install Rust for Android
         run: |
           # The Rust Horizon pins (tools/ci/rust-version), as its CI and the launcher's native mods build with.
           # rust-src: build_apk.py builds the std with the game (its TLS_FLAGS).
           bash tools/ci/rustup_install.sh --profile minimal --component rust-src --target ${{ matrix.target }}
-          cargo install cargo-ndk --version 3.5.4 --locked
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-ndk@3.5.4
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: android-${{ matrix.abi }}
