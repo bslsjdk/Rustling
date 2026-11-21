@@ -3,3 +3,4 @@ pub use client::keyframe_animation::{
     AnimationTypes, Interpolation, JsonAnimationType, Keyframe, KeyframeAnimation,
     RegisteredAnimationType, TypedKeyframeAnimation,
 };
+pub use client::bedrock_animation::parse_bedrock_animation;

@@ -134,12 +134,21 @@ impl Def for Layers {
 /// files (part names, ids, animation targets and expressions, axes, numbers written as text)
 /// costs one per started 64 bytes, each time. `cut`: something was left out for want of them;
 /// `unread`: a part or submodel has a texture or sprites of its own.
-struct Bake {
+pub(crate) struct Bake {
     left: usize,
     cut: bool,
     unread: bool,
 }
 impl Bake {
+    /// A fresh bake budget for one model.
+    pub(crate) fn new() -> Self {
+        Self {
+            left: MAX_NODES,
+            cut: false,
+            unread: false,
+        }
+    }
+
     /// Takes `cost`; when less is left, takes the rest, notes the cut and says false.
     fn spend(&mut self, cost: usize) -> bool {
         let Some(left) = self.left.checked_sub(cost) else {
@@ -504,11 +513,13 @@ fn bone(def: &(impl Def + ?Sized), size: [f32; 2], bake: &mut Bake) -> Bone {
     out
 }
 
-struct Shape {
-    invert: [bool; 3],
-    mirror_u: bool,
-    mirror_v: bool,
-    size: [f32; 2],
+/// The box baker shared by the model formats: file pixels in, quads on the engine's axes out.
+#[derive(Clone)]
+pub(crate) struct Shape {
+    pub(crate) invert: [bool; 3],
+    pub(crate) mirror_u: bool,
+    pub(crate) mirror_v: bool,
+    pub(crate) size: [f32; 2],
 }
 
 /// A box's faces in `ModelPart.Cube`'s order of corners, keyed by the per-face UV name for the
@@ -538,7 +549,7 @@ const CORNER: [[bool; 3]; 8] = [
 
 impl Shape {
     /// Adds the box's faces to `out`; none when its corners or UVs aren't finite.
-    fn bake(&self, b: &[(String, Json)], out: &mut Vec<Quad>, bake: &mut Bake) {
+    pub(crate) fn bake(&self, b: &[(String, Json)], out: &mut Vec<Quad>, bake: &mut Bake) {
         let start = out.len();
         let Some(c) = nums::<6>(get(b, "coordinates"), bake) else {
             return;
