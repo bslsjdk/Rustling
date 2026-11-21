@@ -2995,7 +2995,7 @@ impl Launcher {
                 let title = if paths.len() == 1 {
                     crate::i18n_launcher::tr("Delete selected item?", "删除所选项目？").to_owned()
                 } else {
-                    format!(crate::i18n_launcher::tr("Delete {} selected items?", "删除 {} 个所选项目？"), paths.len())
+                    crate::i18n_launcher::tr("Delete {} selected items?", "删除 {} 个所选项目？").replace("{}", &paths.len().to_string())
                 };
                 ui.text(
                     Face::SemiBold,
