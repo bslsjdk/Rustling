@@ -484,24 +484,21 @@ impl MobTypes {
                         );
                     }
                 }
-                // A content-declared living type may ship its own model layers under its full
-                // id (e.g. `example:creature#main`). Index them under the template's bare layer
-                // name in this type's own layer map, so the renderer's ordinary key lookup picks
-                // the type's look without changing the vanilla species it copies.
+                // A content-declared living type may ship its own model layers keyed by its full
+                // id (e.g. `example:creature#main`, `#armor`). Re-key them to the template's bare
+                // layer name (`wolf#main`) inside this type's own layer map, so the renderer's
+                // ordinary key lookup picks this type's look without changing the species it copies.
                 if !id.starts_with("minecraft:") {
                     let start = format!("{id}#");
-                    for prefix in def.layer_prefixes() {
-                        for (k, v) in all.iter().filter(|(k, _)| k.starts_with(&start)) {
-                            let bare = k.strip_prefix(&start).unwrap_or(k);
-                            if !bare.starts_with(&format!("{prefix}#")) {
-                                continue;
-                            }
-                            let mut part = Part::parse("root", v);
-                            if culls_back_faces(k) {
-                                part.set_cull_back();
-                            }
-                            layers.insert(bare.to_owned(), Arc::new(part));
+                    let base = def.model.split('#').next().unwrap_or(def.name);
+                    for (k, v) in all.iter().filter(|(k, _)| k.starts_with(&start)) {
+                        let suffix = k.strip_prefix(&start).unwrap_or(k);
+                        let mapped = format!("{base}#{suffix}");
+                        let mut part = Part::parse("root", v);
+                        if culls_back_faces(k) {
+                            part.set_cull_back();
                         }
+                        layers.insert(mapped, Arc::new(part));
                     }
                 }
             }
