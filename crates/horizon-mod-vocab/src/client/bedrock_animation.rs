@@ -22,12 +22,15 @@ pub fn parse_bedrock_animation(id_prefix: &str, text: &str) -> Result<Vec<Animat
         let length = anim
             .get("animation_length")
             .and_then(Value::as_f64)
-            .unwrap_or(0.0) as f32;
+            .and_then(finite)
+            .unwrap_or(0.0);
         let looping = anim
             .get("loop")
             .and_then(Value::as_bool)
             .or_else(|| anim.get("looping").and_then(Value::as_bool))
-            .unwrap_or(false);
+            .unwrap_or(false)
+            // A zero-length loop would divide by zero (`seconds %= length`) when played.
+            && length > 0.0;
         let mut bones: Vec<(String, Vec<AnimationChannel>)> = Vec::new();
         if let Some(map) = anim.get("bones").and_then(Value::as_object) {
             for (bone, channels) in map {
@@ -53,12 +56,21 @@ pub fn parse_bedrock_animation(id_prefix: &str, text: &str) -> Result<Vec<Animat
     Ok(out)
 }
 
-fn to_radians(v: [f32; 3], target: AnimationTarget) -> [f32; 3] {
-    if matches!(target, AnimationTarget::Rotation) {
-        v.map(f32::to_radians)
-    } else {
-        v
+/// Bedrock values to the engine's `offsetPos`/`offsetRotation`/`offsetScale` units, matching the
+/// standard animation converter (`mod_animations.rs`): position y is negated, rotation is degrees
+/// to radians, and scale is an offset from 1.
+fn convert(v: [f32; 3], target: AnimationTarget) -> [f32; 3] {
+    match target {
+        AnimationTarget::Position => [v[0], -v[1], v[2]],
+        AnimationTarget::Rotation => v.map(f32::to_radians),
+        AnimationTarget::Scale => v.map(|d| d - 1.0),
+        AnimationTarget::Registered(_) => v,
     }
+}
+
+fn finite(x: f64) -> Option<f32> {
+    let f = x as f32;
+    f.is_finite().then_some(f)
 }
 
 /// One value at a time key: a bare `[x,y,z]`, `{"vec":[x,y,z]}`, or a keyframe object
@@ -67,15 +79,23 @@ fn value_of(val: &Value, target: AnimationTarget) -> Option<([f32; 3], [f32; 3],
     let vec = |v: &Value| -> Option<[f32; 3]> {
         // Bedrock allows a scalar for a channel, meaning the same value on all axes (common for
         // `scale`). JSON stores it as a string or a number.
-        let scalar = |s: &str| s.parse::<f32>().ok().map(|x| [x, x, x]);
+        let scalar = |s: &str| s.parse::<f64>().ok().and_then(finite).map(|x| [x, x, x]);
         if let Some(s) = v.as_str() {
             return scalar(s);
         }
         if let Some(n) = v.as_f64() {
-            return Some([n as f32; 3]);
+            return finite(n).map(|x| [x, x, x]);
         }
         let a = v.as_array()?;
-        (a.len() == 3).then(|| std::array::from_fn::<_, 3, _>(|i| a[i].as_f64().unwrap_or(0.0) as f32))
+        if a.len() != 3 {
+            return None;
+        }
+        // An expression vector can't be evaluated here: skip the frame rather than pass off
+        // unevaluable components as zero.
+        let x = a[0].as_f64().and_then(finite)?;
+        let y = a[1].as_f64().and_then(finite)?;
+        let z = a[2].as_f64().and_then(finite)?;
+        Some([x, y, z])
     };
     let interp = |obj: &serde_json::Map<String, Value>| match obj.get("lerp_mode").and_then(Value::as_str) {
         Some("catmullrom") => Interpolation::CatmullRom,
@@ -83,22 +103,22 @@ fn value_of(val: &Value, target: AnimationTarget) -> Option<([f32; 3], [f32; 3],
     };
     // A bare scalar (string or number) as the whole channel value, e.g. `"scale": "0.5"`.
     if val.is_string() || val.is_number() {
-        let v = to_radians(vec(val)?, target);
+        let v = convert(vec(val)?, target);
         return Some((v, v, Interpolation::Linear));
     }
-    if let Some(a) = val.as_array() {
-        let v = to_radians(vec(val)?, target);
+    if val.is_array() {
+        let v = convert(vec(val)?, target);
         return Some((v, v, Interpolation::Linear));
     }
     if let Some(obj) = val.as_object() {
         if let Some(v) = obj.get("vec").and_then(vec) {
-            let v = to_radians(v, target);
+            let v = convert(v, target);
             return Some((v, v, interp(obj)));
         }
         // A keyframe may give only `post` (the common Bedrock form): `pre` then equals `post`.
         let post = obj.get("post").and_then(vec)?;
         let pre = obj.get("pre").and_then(vec).unwrap_or(post);
-        return Some((to_radians(pre, target), to_radians(post, target), interp(obj)));
+        return Some((convert(pre, target), convert(post, target), interp(obj)));
     }
     None
 }
@@ -146,19 +166,27 @@ mod tests {
     }"#;
 
     #[test]
-    fn parses_static_pose_and_pre_post_keyframes() {
+    fn converts_units_and_keyframe_variants() {
         let text = r#"{"animations":{"a":{"bones":{
-          "static":{"rotation":[90,0,0],"scale":"0.5"},
+          "static":{"rotation":[90,0,0],"scale":"0.5","position":[0,2,0]},
+          "unit_scale":{"scale":1},
           "keyed":{"rotation":{"0.0":[0,0,0],"0.5":{"pre":[45,0,0],"post":[45,0,0],"lerp_mode":"catmullrom"}}}
         }}}}"#;
         let holders = parse_bedrock_animation("ns", text).unwrap();
         let bones = &holders[0].bones;
         let st = &bones.iter().find(|(n, _)| n == "static").unwrap().1;
-        assert_eq!(st.len(), 2);
+        assert_eq!(st.len(), 3);
         let rot = st.iter().find(|c| c.target == AnimationTarget::Rotation).unwrap();
         assert!((rot.keyframes[0].pre[0] - std::f32::consts::FRAC_PI_2).abs() < 1e-5);
+        // Scale is an offset from 1: 0.5 -> -0.5.
         let scale = st.iter().find(|c| c.target == AnimationTarget::Scale).unwrap();
-        assert_eq!(scale.keyframes[0].pre, [0.5, 0.5, 0.5]);
+        assert_eq!(scale.keyframes[0].pre, [-0.5, -0.5, -0.5]);
+        // Position y is negated: [0,2,0] -> [0,-2,0].
+        let pos = st.iter().find(|c| c.target == AnimationTarget::Position).unwrap();
+        assert_eq!(pos.keyframes[0].pre, [0.0, -2.0, 0.0]);
+        // Scale 1 -> [0,0,0] (no change).
+        let unit = &bones.iter().find(|(n, _)| n == "unit_scale").unwrap().1;
+        assert_eq!(unit[0].keyframes[0].pre, [0.0, 0.0, 0.0]);
         let kd = &bones.iter().find(|(n, _)| n == "keyed").unwrap().1;
         assert_eq!(kd[0].keyframes.len(), 2);
         assert!(matches!(kd[0].keyframes[1].interpolation, Interpolation::CatmullRom));
