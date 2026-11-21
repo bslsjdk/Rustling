@@ -59,10 +59,10 @@ impl CurseForge {
         let response = super::download::agent(url)
             .get(url)
             .set("x-api-key", &self.key)
-            .set("接受", "application/json")
+            .set(crate::i18n_launcher::tr("Accept", "接受"), "application/json")
             .call()
             .map_err(|e| match e {
-                ureq::Error::Status(403, _) => "CurseForge 拒绝了启动器的 API 密钥。".into(),
+                ureq::Error::Status(403, _) => crate::i18n_launcher::tr("CurseForge refused the launcher's API key.", "CurseForge 拒绝了启动器的 API 密钥。").into(),
                 ureq::Error::Status(code, _) => format!("CurseForge 返回 {code}。"),
                 ureq::Error::Transport(t) => format!("无法连接 CurseForge：{t}"),
             })?;
@@ -192,7 +192,7 @@ pub(super) fn parse_file(f: &Value) -> Option<Version> {
             .collect(),
         blocked: url
             .is_none()
-            .then(|| "其作者只允许从 CurseForge 官网下载。".to_owned()),
+            .then(|| crate::i18n_launcher::tr("Its author allows downloads from CurseForge's own site only.", "其作者只允许从 CurseForge 官网下载。").to_owned()),
     })
 }
 

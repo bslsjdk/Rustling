@@ -55,11 +55,11 @@ impl Kind {
 
     pub fn label(self) -> &'static str {
         match self {
-            Kind::Mod => "模组",
-            Kind::ResourcePack => "资源包",
-            Kind::Modpack => "整合包",
-            Kind::Shader => "光影包",
-            Kind::DataPack => "数据包",
+            Kind::Mod => crate::i18n_launcher::tr("Mods", "模组"),
+            Kind::ResourcePack => crate::i18n_launcher::tr("Resource packs", "资源包"),
+            Kind::Modpack => crate::i18n_launcher::tr("Modpacks", "整合包"),
+            Kind::Shader => crate::i18n_launcher::tr("Shader packs", "光影包"),
+            Kind::DataPack => crate::i18n_launcher::tr("Data packs", "数据包"),
         }
     }
 
@@ -112,9 +112,9 @@ impl Support {
 
     pub fn label(&self) -> &'static str {
         match self {
-            Support::Works => "可用",
-            Support::Partial(_) => "部分可用",
-            Support::No(_) => "无法运行",
+            Support::Works => crate::i18n_launcher::tr("Works", "可用"),
+            Support::Partial(_) => crate::i18n_launcher::tr("Partly", "部分可用"),
+            Support::No(_) => crate::i18n_launcher::tr("Doesn't run", "无法运行"),
         }
     }
 
@@ -272,7 +272,6 @@ pub trait Source: Send + Sync {
 }
 
 /// What the launcher says wherever CurseForge would be.
-pub const CURSEFORGE_SOON: &str = "CurseForge 支持即将推出。";
 /// What another source answers for shader packs: Horizon's own are on its registry only.
 pub const SHADERS_ON_HORIZON: &str =
     "Horizon's shader packs are on Horizon's registry: pick Horizon.";
@@ -314,7 +313,7 @@ pub fn support(kind: Kind, game_versions: &[String], loaders: &[String]) -> Supp
             }
         }
         Kind::Modpack => {
-            Support::Partial("Horizon runs the mods it can port, from your own downloads.".into())
+            Support::Partial(crate::i18n_launcher::tr("Horizon runs the mods it can port, from your own downloads.", "Horizon 运行你自行下载的、可移植的模组。").into())
         }
         Kind::Shader => Support::No("不是 Horizon 自己的光影包。".into()),
         Kind::DataPack => {
@@ -327,7 +326,7 @@ pub fn support(kind: Kind, game_versions: &[String], loaders: &[String]) -> Supp
         }
         Kind::Mod => {
             if !loaders.iter().any(|l| java::LOADERS.contains(&l.as_str())) {
-                Support::No("Not a Fabric, NeoForge or Forge mod.".into())
+                Support::No(crate::i18n_launcher::tr("Not a Fabric, NeoForge or Forge mod.", "不是 Fabric、NeoForge 或 Forge 模组。").into())
             } else if !game_versions.iter().any(|v| portable_version(v)) {
                 let newest = newest_release(game_versions).unwrap_or("an unknown version");
                 Support::No(format!(
@@ -335,7 +334,7 @@ pub fn support(kind: Kind, game_versions: &[String], loaders: &[String]) -> Supp
                 ))
             } else {
                 Support::Partial(
-                    "Not checked yet: the launcher reads its jar to say what of it ports.".into(),
+                    crate::i18n_launcher::tr("Not checked yet: the launcher reads its jar to say what of it ports.", "尚未检查：启动器将读取其 jar 判断可移植部分。").into(),
                 )
             }
         }

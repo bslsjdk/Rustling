@@ -25,14 +25,14 @@ fn world_access(id: &str) -> io::Result<()> {
     {
         return Err(io::Error::new(
             ErrorKind::PermissionDenied,
-            "访问世界或配置前请先返回启动器",
+            crate::i18n_launcher::tr("Return to the launcher before accessing worlds or configuration", "访问世界或配置前请先返回启动器"),
         ));
     }
     Ok(())
 }
 
 fn invalid() -> io::Error {
-    io::Error::new(ErrorKind::InvalidInput, "无效的 Horizon 文档")
+    io::Error::new(ErrorKind::InvalidInput, crate::i18n_launcher::tr("Invalid Horizon document", "无效的 Horizon 文档"))
 }
 fn component(name: &str) -> io::Result<()> {
     if name.is_empty()
@@ -80,8 +80,8 @@ pub fn path_of(home: &Path, id: &str) -> Option<PathBuf> {
 fn resolve(home: &Path, id: &str) -> io::Result<Document> {
     let mut parts = id.split('/');
     let first = parts.next().ok_or_else(invalid)?;
-    let (base, label, reports) = if first == "reports" {
-        (home.join("performance"), "报告", true)
+    let (base, label, reports, configuration) = if first == "reports" {
+        (home.join("performance"), crate::i18n_launcher::tr("Reports", "报告"), true, false)
     } else {
         let number = first.strip_prefix('p').ok_or_else(invalid)?;
         let profile: u32 = number.parse().map_err(|_| invalid())?;
@@ -94,18 +94,17 @@ fn resolve(home: &Path, id: &str) -> io::Result<Document> {
         } else {
             home.join("profiles").join(format!("profile-{profile}"))
         };
-        let (folder, label) = match parts.next() {
-            Some("mods") => ("horizon-mods", "模组"),
-            Some("packs") => ("resourcepacks", "资源包"),
-            Some("shaders") => ("shaderpacks", "光影包"),
-            Some("worlds") => ("saves", "世界"),
-            Some("configuration") => ("", "配置"),
+        let (folder, label, configuration) = match parts.next() {
+            Some("mods") => ("horizon-mods", crate::i18n_launcher::tr("Mods", "模组"), false),
+            Some("packs") => ("resourcepacks", crate::i18n_launcher::tr("Resource Packs", "资源包"), false),
+            Some("shaders") => ("shaderpacks", crate::i18n_launcher::tr("Shader Packs", "光影包"), false),
+            Some("worlds") => ("saves", crate::i18n_launcher::tr("Worlds", "世界"), false),
+            Some("configuration") => ("", crate::i18n_launcher::tr("Configuration", "配置"), true),
             _ => return Err(invalid()),
         };
-        (root.join(folder), label, false)
+        (root.join(folder), label, false, configuration)
     };
     let tail: Vec<_> = parts.collect();
-    let configuration = label == "配置";
     if configuration && !tail.is_empty() && (tail.len() != 1 || !CONFIG_FILES.contains(&tail[0])) {
         return Err(invalid());
     }
@@ -147,7 +146,7 @@ fn resolve(home: &Path, id: &str) -> io::Result<Document> {
 fn row(home: &Path, id: &str) -> io::Result<Value> {
     if id == ROOT {
         return Ok(
-            json!({"document_id": ROOT, "_display_name": "Horizon 安卓",
+            json!({"document_id": ROOT, "_display_name": crate::i18n_launcher::tr("Horizon Android", "Horizon 安卓"),
             "mime_type": DIRECTORY, "flags": 0}),
         );
     }
@@ -219,7 +218,7 @@ pub fn children(home: &Path, id: &str) -> io::Result<Vec<Value>> {
         if index == MAX_CHILDREN {
             return Err(io::Error::new(
                 ErrorKind::InvalidData,
-                "一个文件夹中的文件过多，无法安全列出",
+                crate::i18n_launcher::tr("Too many files in one folder to list safely", "一个文件夹中的文件过多，无法安全列出"),
             ));
         }
         let entry = entry?;
@@ -286,7 +285,7 @@ pub fn call(home: &Path, op: &str, id: &str, arg: &str) -> io::Result<Value> {
     }
     match op {
         "roots" => Ok(json!([{"root_id": ROOT, "document_id": ROOT,
-            "title": "Horizon 安卓", "flags": 18, "mime_types": "*/*"}])),
+            "title": crate::i18n_launcher::tr("Horizon Android", "Horizon 安卓"), "flags": 18, "mime_types": "*/*"}])),
         "document" => Ok(json!([row(home, id)?])),
         "children" => Ok(json!(children(home, id)?)),
         "child" => Ok(json!(is_child(home, id, arg))),
@@ -464,7 +463,7 @@ mod world_tests {
         let home =
             std::env::temp_dir().join(format!("horizon-world-documents-{}", std::process::id()));
         fs::create_dir_all(&home).unwrap();
-        let id = call(&home, "mkdir", "p0/worlds", "示例").unwrap();
+        let id = call(&home, "mkdir", "p0/worlds", "Example").unwrap();
         assert_eq!(id, "p0/worlds/Example");
         call(&home, "create", id.as_str().unwrap(), "level.dat").unwrap();
         use std::io::{Read, Write};
@@ -535,14 +534,14 @@ pub const PROTECTED_SYSTEM_NAMES: &[&str] = &[
 ];
 
 pub const FM_ROOT_DIRS: &[(&str, &str)] = &[
-    ("", "根目录"),
-    ("saves", "世界"),
-    ("horizon-mods", "模组"),
-    ("resourcepacks", "资源包"),
-    ("shaderpacks", "光影"),
-    ("controls", "按键控制"),
-    ("screenshots", "镜头"),
-    ("performance", "报告"),
+    ("", crate::i18n_launcher::tr("Root", "根目录")),
+    ("saves", crate::i18n_launcher::tr("Worlds", "世界")),
+    ("horizon-mods", crate::i18n_launcher::tr("Mods", "模组")),
+    ("resourcepacks", crate::i18n_launcher::tr("Resource Packs", "资源包")),
+    ("shaderpacks", crate::i18n_launcher::tr("Shaders", "光影")),
+    ("controls", crate::i18n_launcher::tr("Controls", "按键控制")),
+    ("screenshots", crate::i18n_launcher::tr("Shots", "镜头")),
+    ("performance", crate::i18n_launcher::tr("Reports", "报告")),
 ];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -592,16 +591,16 @@ pub fn is_protected_root_folder(rel_path: &str) -> bool {
 pub fn validate_entry_name(name: &str) -> Result<(), String> {
     let trimmed = name.trim();
     if trimmed.is_empty() {
-        return Err("名称不能为空。".into());
+        return Err(crate::i18n_launcher::tr("Name cannot be empty.", "名称不能为空。").into());
     }
     if trimmed == "." || trimmed == ".." || trimmed.contains("..") {
-        return Err("Path traversal ('..') is not allowed.".into());
+        return Err(crate::i18n_launcher::tr("Path traversal ('..') is not allowed.", "不允许路径穿越（'..'）。").into());
     }
     if trimmed.starts_with('.') {
-        return Err("不允许以 '.' 开头的隐藏或系统名称。".into());
+        return Err(crate::i18n_launcher::tr("Hidden or system names starting with '.' are not allowed.", "不允许以 '.' 开头的隐藏或系统名称。").into());
     }
     if trimmed.len() > 200 {
-        return Err("名称过长。".into());
+        return Err(crate::i18n_launcher::tr("Name is too long.", "名称过长。").into());
     }
     if trimmed.chars().any(|c| {
         c.is_control() || matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|')
@@ -625,7 +624,7 @@ fn verify_no_symlinks(home: &Path, target: &Path) -> Result<(), String> {
             Component::Normal(seg) => {
                 let seg_str = seg.to_string_lossy();
                 if seg_str == ".local" {
-                    return Err("Access to internal engine storage (.local) is restricted.".into());
+                    return Err(crate::i18n_launcher::tr("Access to internal engine storage (.local) is restricted.", "禁止访问引擎内部存储（.local）。").into());
                 }
                 cur.push(seg);
             }
@@ -691,16 +690,16 @@ pub fn classify_entry_kind(path: &Path, is_dir: bool) -> String {
         .map(|s| s.to_ascii_lowercase())
         .as_deref()
     {
-        Some("hmod") => "Horizon Mod (.hmod)".into(),
-        Some("hnmod") => "Native Mod (.hnmod)".into(),
-        Some("jar") => "Java Mod (.jar)".into(),
-        Some("hshader") => "Horizon Shader (.hshader)".into(),
+        Some("hmod") => crate::i18n_launcher::tr("Horizon Mod (.hmod)", "Horizon 模组 (.hmod)").into(),
+        Some("hnmod") => crate::i18n_launcher::tr("Native Mod (.hnmod)", "原生模组 (.hnmod)").into(),
+        Some("jar") => crate::i18n_launcher::tr("Java Mod (.jar)", "Java 模组 (.jar)").into(),
+        Some("hshader") => crate::i18n_launcher::tr("Horizon Shader (.hshader)", "Horizon 着色器 (.hshader)").into(),
         Some("zip") => "Archive / Pack (.zip)".into(),
         Some("png") => "PNG Image (.png)".into(),
         Some("json") => "JSON Config (.json)".into(),
-        Some("jsonl") => "Telemetry Log (.jsonl)".into(),
+        Some("jsonl") => crate::i18n_launcher::tr("Telemetry Log (.jsonl)", "遥测日志 (.jsonl)").into(),
         Some("toml") => "TOML Config (.toml)".into(),
-        Some("txt" | "cfg" | "properties") => "Text Config (.txt)".into(),
+        Some("txt" | "cfg" | "properties") => crate::i18n_launcher::tr("Text Config (.txt)", "文本配置 (.txt)").into(),
         Some("dat" | "mca" | "mcr") => "世界数据".into(),
         Some(ext) => format!("{} File (.{ext})", ext.to_ascii_uppercase()),
         None => "文件".into(),
@@ -1140,7 +1139,7 @@ pub fn fm_details(
             }
         } else {
             preview_lines.push(
-                "Binary file (text preview is enabled for .txt, .toml, and .json files).".into(),
+                crate::i18n_launcher::tr("Binary file (text preview is enabled for .txt, .toml, and .json files).", "二进制文件（仅 .txt、.toml 和 .json 文件支持文本预览）。").into(),
             );
         }
     }

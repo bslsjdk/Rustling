@@ -79,10 +79,10 @@ fn refuse_file(file: &FileRef) -> Option<String> {
         return Some(format!("{:?} isn't a plain file name.", file.name));
     }
     if file.checksum().is_none() {
-        return Some("Its source gives no checksum, so it can't be checked.".into());
+        return Some(crate::i18n_launcher::tr("Its source gives no checksum, so it can't be checked.", "其来源未提供校验和，因此无法校验。").into());
     }
     if file.size > MAX {
-        return Some("它比任何包应有的体积都大。".into());
+        return Some(crate::i18n_launcher::tr("It is larger than any pack should be.", "它比任何包应有的体积都大。").into());
     }
     None
 }
@@ -161,7 +161,7 @@ pub(super) fn save_from_anywhere(
             }
             done += n as u64;
             if done > MAX || (file.size > 0 && done > file.size) {
-                return Err("下载体积大于来源标注。".to_string());
+                return Err(crate::i18n_launcher::tr("The download is larger than its source says.", "下载体积大于来源标注。").to_string());
             }
             hasher.update(&buf[..n]);
             out.write_all(&buf[..n]).map_err(|e| e.to_string())?;

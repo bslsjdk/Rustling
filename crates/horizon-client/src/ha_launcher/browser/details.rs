@@ -25,11 +25,11 @@ impl Sort {
     ];
     pub fn label(self) -> &'static str {
         match self {
-            Sort::Relevance => "相关度",
-            Sort::Downloads => "下载量",
-            Sort::Follows => "关注数",
-            Sort::Newest => "最新",
-            Sort::Updated => "已更新",
+            Sort::Relevance => crate::i18n_launcher::tr("Relevance", "相关度"),
+            Sort::Downloads => crate::i18n_launcher::tr("Downloads", "下载量"),
+            Sort::Follows => crate::i18n_launcher::tr("Follows", "关注数"),
+            Sort::Newest => crate::i18n_launcher::tr("Newest", "最新"),
+            Sort::Updated => crate::i18n_launcher::tr("Updated", "已更新"),
         }
     }
     /// Modrinth's `index`.
@@ -64,8 +64,8 @@ impl Environment {
     pub const ALL: [Environment; 2] = [Environment::Client, Environment::Server];
     pub fn label(self) -> &'static str {
         match self {
-            Environment::Client => "客户端",
-            Environment::Server => "服务器",
+            Environment::Client => crate::i18n_launcher::tr("Client", "客户端"),
+            Environment::Server => crate::i18n_launcher::tr("Server", "服务器"),
         }
     }
 }
@@ -187,8 +187,8 @@ pub fn modrinth_details(project: &Value, members: &Value) -> Details {
     gallery.sort_by_key(|(order, i)| (!i.featured, *order));
     let mut links = Vec::new();
     for (key, label) in [
-        ("source_url", "来源"),
-        ("issues_url", "议题"),
+        ("source_url", crate::i18n_launcher::tr("Source", "来源")),
+        ("issues_url", crate::i18n_launcher::tr("Issues", "议题")),
         ("wiki_url", "Wiki"),
         ("discord_url", "Discord"),
     ] {
@@ -321,7 +321,7 @@ mod tests {
         );
         assert_eq!(
             d.links.iter().map(|l| l.label.as_str()).collect::<Vec<_>>(),
-            ["来源", "Discord", "Donate (Ko-fi)"]
+            [crate::i18n_launcher::tr("Source", "来源"), "Discord", "Donate (Ko-fi)"]
         );
         assert_eq!(d.authors, ["Macaw", "helper"]);
         assert_eq!(d.categories, ["decoration", "utility"]);

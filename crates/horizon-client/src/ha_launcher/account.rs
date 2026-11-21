@@ -113,7 +113,7 @@ impl SignIn {
                 SignInState::Done(Err(format!("以 {name} 的身份离线游玩")))
             }
             State::Failed(reason) => SignInState::Done(Err(crate::lang::get(&reason))),
-            State::Offline => SignInState::Done(Err("已退出登录".into())),
+            State::Offline => SignInState::Done(Err(crate::i18n_launcher::tr("Signed out", "已退出登录").into())),
             State::Starting | State::Resuming | State::Progress(_) => SignInState::Starting,
         }
     }

@@ -111,6 +111,22 @@ fn native_libraries() -> (
     }
 }
 
+/// `StarlingActivity.onSystemLanguage`, called on the UI thread before the game's
+/// thread starts so the launcher's wrapped strings follow the device language.
+#[unsafe(no_mangle)]
+extern "system" fn Java_io_github_juanluci_starling_StarlingActivity_onSystemLanguage(
+    mut env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+    language: jni::objects::JString,
+) {
+    if language.is_null() {
+        return;
+    }
+    if let Ok(language) = env.get_string(&language) {
+        horizon_client::i18n_launcher::set_system_language(&String::from(language));
+    }
+}
+
 /// `StarlingActivity.onStorage`, called on the UI thread before the game's thread starts.
 #[unsafe(no_mangle)]
 extern "system" fn Java_io_github_juanluci_starling_StarlingActivity_onStorage(
@@ -231,7 +247,7 @@ extern "system" fn Java_io_github_juanluci_starling_DiagnosticsActivity_makeRepo
             )
         },
     ))
-    .unwrap_or_else(|_| Err("Diagnostic worker failed".into()));
+    .unwrap_or_else(|_| Err(crate::i18n_launcher::tr("Diagnostic worker failed", "诊断工作线程失败").into()));
     match result {
         Ok(text) => env
             .new_string(text)

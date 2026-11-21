@@ -1,0 +1,23 @@
+<resources>
+    <string name="launcher_handing_file">正在把文件交给 Starling…</string>
+    <string name="launcher_restarting">正在重新启动 Starling…</string>
+    <string name="launcher_subtitle">RUST 版  •  安卓启动器</string>
+    <string name="mod_permission_title">原生模组需要权限</string>
+    <string name="mod_permission_message">接下来 Android 会向你请求权限。之后可在应用设置中更改。</string>
+    <string name="mod_permission_continue">继续</string>
+    <string name="mod_permission_not_now">暂时不要</string>
+    <string name="build_server_warning_title">我们不对其他构建服务器负责</string>
+    <string name="build_server_warning_body">其他服务器返回的游戏将在 Starling 内以完整权限运行，包括你的世界和已登录账号。请只使用你自己搭建或完全信任的服务器。发送给它的文件仅包含你的原生模组。</string>
+    <string name="build_server_title">构建服务器</string>
+    <string name="build_server_use">使用此服务器</string>
+    <string name="build_server_default">使用 Starling 的服务器</string>
+    <string name="build_server_bad_address">这不是 https:// 地址。未做任何更改。</string>
+    <string name="cancel">取消</string>
+    <string name="horizon_import_title">正在从 Horizon Android 迁移你的世界</string>
+    <string name="horizon_import_wrong_folder">这不是 Horizon Android 的文件夹：请在位置列表中选择 Horizon</string>
+    <string name="horizon_import_read_failed">无法读取 Horizon Android 的文件：请先关闭 Horizon Android，然后重试</string>
+    <string name="horizon_import_empty">Horizon Android 在此处没有世界或资源包</string>
+    <string name="work_error_microsoft">无法连接 Microsoft</string>
+    <string name="work_notification_title">Starling 正在工作</string>
+    <string name="work_notification_text">Starling 工作中</string>
+</resources>

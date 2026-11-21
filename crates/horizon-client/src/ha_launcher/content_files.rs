@@ -22,9 +22,9 @@ impl Kind {
     }
     pub fn label(self) -> &'static str {
         match self {
-            Self::Mods => "模组",
-            Self::Packs => "资源包",
-            Self::Shaders => "光影",
+            Self::Mods => crate::i18n_launcher::tr("Mods", "模组"),
+            Self::Packs => crate::i18n_launcher::tr("Resource Packs", "资源包"),
+            Self::Shaders => crate::i18n_launcher::tr("Shaders", "光影"),
         }
     }
     pub fn accepts(self, name: &str) -> bool {
@@ -58,7 +58,7 @@ pub fn validate(
 ) -> crate::ha_launcher::client::Result<bool> {
     if !plain_name(name) || !kind.accepts(name) {
         return Err(
-            "Choose a ZIP pack, .hshader shader pack or sandboxed .hmod matching this folder"
+            crate::i18n_launcher::tr("Choose a ZIP pack, .hshader shader pack or sandboxed .hmod matching this folder", "选择与此文件夹匹配的 ZIP 资源包、.hshader 着色器包或沙盒 .hmod")
                 .into(),
         );
     }
@@ -71,7 +71,7 @@ pub fn validate(
     }
     let mut zip = zip::ZipArchive::new(file)?;
     if zip.len() > 32768 {
-        return Err("压缩包内文件过多".into());
+        return Err(crate::i18n_launcher::tr("Archive contains too many files", "压缩包内文件过多").into());
     }
     let mut names = HashSet::new();
     let mut total = 0u64;
@@ -82,7 +82,7 @@ pub fn validate(
     let mut buffer = [0u8; 65536];
     for i in 0..zip.len() {
         if cancelled() {
-            return Err("已取消导入".into());
+            return Err(crate::i18n_launcher::tr("Import cancelled", "已取消导入").into());
         }
         let mut entry = zip.by_index(i)?;
         let raw = entry.name()?.into_owned();
@@ -95,11 +95,11 @@ pub fn validate(
             || !names.insert(raw.clone())
             || entry.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000)
         {
-            return Err("压缩包包含不安全或重复的路径".into());
+            return Err(crate::i18n_launcher::tr("Archive contains an unsafe or duplicate path", "压缩包包含不安全或重复的路径").into());
         }
         total = total
             .checked_add(entry.size())
-            .ok_or("压缩包大小溢出")?;
+            .ok_or(crate::i18n_launcher::tr("Archive size overflow", "压缩包大小溢出"))?;
         if total > MAX_EXPANDED || kind == Kind::Mods && total > 64 << 20 {
             return Err("Expanded archive exceeds 512 MiB".into());
         }
@@ -114,13 +114,13 @@ pub fn validate(
         manifest |= raw == "horizon-mod.toml";
         let expected = entry.size();
         if raw == "pack.mcmeta" && expected > 1 << 20 {
-            return Err("包元数据过大".into());
+            return Err(crate::i18n_launcher::tr("Pack metadata is too large", "包元数据过大").into());
         }
         let mut metadata = Vec::new();
         let mut actual = 0u64;
         while !entry.is_dir() {
             if cancelled() {
-                return Err("已取消导入".into());
+                return Err(crate::i18n_launcher::tr("Import cancelled", "已取消导入").into());
             }
             let n = entry.read(&mut buffer)?;
             if n == 0 {
@@ -131,18 +131,18 @@ pub fn validate(
                 metadata.extend_from_slice(&buffer[..n]);
             }
             if actual > expected || actual > MAX_EXPANDED {
-                return Err("压缩包大小不匹配".into());
+                return Err(crate::i18n_launcher::tr("Archive size mismatch", "压缩包大小不匹配").into());
             }
         }
         if !entry.is_dir() && actual != expected {
-            return Err("不完整的压缩包条目".into());
+            return Err(crate::i18n_launcher::tr("Incomplete archive entry", "不完整的压缩包条目").into());
         }
         if raw == "pack.mcmeta"
             && !serde_json::from_slice::<serde_json::Value>(&metadata)?
                 .get("pack")
                 .is_some_and(|v| v.is_object())
         {
-            return Err("资源包元数据没有包对象".into());
+            return Err(crate::i18n_launcher::tr("Resource pack metadata has no pack object", "资源包元数据没有包对象").into());
         }
     }
     if !match kind {
@@ -175,7 +175,7 @@ pub fn copy_bounded(
         if !progress(total) {
             return Err(io::Error::new(
                 io::ErrorKind::Interrupted,
-                "已取消导入",
+                crate::i18n_launcher::tr("Import cancelled", "已取消导入"),
             ));
         }
         let n = input.read(&mut buffer)?;

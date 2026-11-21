@@ -57,9 +57,9 @@ public final class WorkService extends Service {
         }
     }
 
-    private static String line() {
+    private static String line(Context context) {
         synchronized (REASONS) {
-            String last = "Starling is working";
+            String last = context.getString(R.string.work_notification_title);
             for (String line : REASONS.values()) {
                 last = line;
             }
@@ -75,7 +75,7 @@ public final class WorkService extends Service {
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager != null) {
                 manager.createNotificationChannel(new NotificationChannel(
-                        CHANNEL, "Starling at work", NotificationManager.IMPORTANCE_LOW));
+                        CHANNEL, getString(R.string.work_notification_text), NotificationManager.IMPORTANCE_LOW));
             }
             builder = new Notification.Builder(this, CHANNEL);
         } else {
@@ -84,7 +84,7 @@ public final class WorkService extends Service {
         Notification notification = builder
                 .setSmallIcon(getApplicationInfo().icon)
                 .setContentTitle("Starling")
-                .setContentText(line())
+                .setContentText(line(this))
                 .setOngoing(true)
                 .build();
         try {

@@ -163,12 +163,12 @@ pub(crate) mod client {
             ];
             pub fn label(self) -> &'static str {
                 match self {
-                    Self::Metadata => "正在检查 Minecraft 版本",
-                    Self::Download => "正在下载游戏资源与音效",
-                    Self::Extract => "正在解压已验证的文件",
-                    Self::WorldData => "正在准备世界与注册表",
-                    Self::Controls => "正在下载触摸按键",
-                    Self::Finalize => "正在完成安装",
+                    Self::Metadata => crate::i18n_launcher::tr("Checking Minecraft version", "正在检查 Minecraft 版本"),
+                    Self::Download => crate::i18n_launcher::tr("Downloading game resources and sound", "正在下载游戏资源与音效"),
+                    Self::Extract => crate::i18n_launcher::tr("Unpacking verified files", "正在解压已验证的文件"),
+                    Self::WorldData => crate::i18n_launcher::tr("Preparing worlds and registries", "正在准备世界与注册表"),
+                    Self::Controls => crate::i18n_launcher::tr("Downloading touch controls", "正在下载触摸按键"),
+                    Self::Finalize => crate::i18n_launcher::tr("Finishing installation", "正在完成安装"),
                 }
             }
         }
@@ -323,7 +323,7 @@ pub fn play(installed: bool) -> Result<(), String> {
     };
     if !crate::android::call_restart(&message) {
         let _ = std::fs::remove_file(marker);
-        return Err("安卓无法启动 Starling，请重试。".into());
+        return Err(crate::i18n_launcher::tr("Android could not start Starling. Try again.", "安卓无法启动 Starling，请重试。").into());
     }
     Ok(())
 }

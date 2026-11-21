@@ -97,9 +97,9 @@ impl Login {
                 format!("Already signed in as {name} · {}", self.provider_name())
             }
             (Some(name), false) => format!("需要登录 {name}"),
-            _ if self.pending() => "正在登录…".into(),
+            _ if self.pending() => crate::i18n_launcher::tr("Signing in...", "正在登录…").into(),
             _ if !offline_name.trim().is_empty() => format!("离线：{offline_name}"),
-            _ => "离线 / 登录".into(),
+            _ => crate::i18n_launcher::tr("Offline / Sign in", "离线 / 登录").into(),
         }
     }
 
@@ -142,7 +142,7 @@ impl Login {
                 }))
         {
             self.message =
-                "Register our Microsoft public client application first, then enter its client ID."
+                crate::i18n_launcher::tr("Register our Microsoft public client application first, then enter its client ID.", "请先注册我们的 Microsoft 公共客户端应用，然后输入其客户端 ID。")
                     .into();
             return;
         }
@@ -225,7 +225,7 @@ impl Login {
                 .remove_when_idle(account::store(), &a.key())
                 .and_then(|_| accounts.save())
             {
-                Ok(()) => "已退出登录，可离线游玩。".into(),
+                Ok(()) => crate::i18n_launcher::tr("Signed out. Offline play is available.", "已退出登录，可离线游玩。").into(),
                 Err(e) => e,
             };
         }
@@ -234,9 +234,9 @@ impl Login {
     pub fn copy_code(&mut self) {
         if let Some(SignInState::Code(code)) = &self.state {
             self.message = if crate::ha_launcher::platform::copy_login_code(&code.user_code) {
-                "验证码已复制，请粘贴到微软页面。".into()
+                crate::i18n_launcher::tr("Code copied. Paste it on the Microsoft page.", "验证码已复制，请粘贴到微软页面。").into()
             } else {
-                "无法复制验证码，请重试。".into()
+                crate::i18n_launcher::tr("Could not copy the code. Try again.", "无法复制验证码，请重试。").into()
             };
         }
     }
@@ -367,7 +367,7 @@ impl Login {
         ui.border(x, y, w, h, 26.0, login_border());
 
         let (title, subtitle): (&str, String) = if self.providers {
-            ("账号", "选择你想如何游玩".into())
+            (crate::i18n_launcher::tr("Accounts", "账号"), crate::i18n_launcher::tr("Choose how you want to play", "选择你想如何游玩").into())
         } else if self.choosing {
             let line = if let Some(name) = &self.profile {
                 if self.signed_in {
@@ -376,18 +376,18 @@ impl Login {
                     format!("需要登录 {name}")
                 }
             } else {
-                "选择一个账号或离线游玩".into()
+                crate::i18n_launcher::tr("Choose an account or play offline", "选择一个账号或离线游玩").into()
             };
-            ("你的账号", line)
+            (crate::i18n_launcher::tr("Your accounts", "你的账号"), line)
         } else if self.ely {
             (
-                "Ely.by 账号",
-                "凭据仅发送到 authserver.ely.by".into(),
+                crate::i18n_launcher::tr("Ely.by account", "Ely.by 账号"),
+                crate::i18n_launcher::tr("Credentials go only to authserver.ely.by", "凭据仅发送到 authserver.ely.by").into(),
             )
         } else if self.offline {
             (
-                "离线账号",
-                "用于单人游戏与局域网联机的本地名称".into(),
+                crate::i18n_launcher::tr("Offline profile", "离线账号"),
+                crate::i18n_launcher::tr("A local name for single-player and LAN", "用于单人游戏与局域网联机的本地名称").into(),
             )
         } else {
             let line = if let Some(name) = &self.profile {
@@ -397,9 +397,9 @@ impl Login {
                     format!("登录以使用 {name}")
                 }
             } else {
-                "Xbox 与 Minecraft 账号".into()
+                crate::i18n_launcher::tr("Xbox and Minecraft profile", "Xbox 与 Minecraft 账号").into()
             };
-            ("微软账号", line)
+            (crate::i18n_launcher::tr("Microsoft account", "微软账号"), line)
         };
         if !self.providers {
             let back = [x + 16.0, y + 16.0, 38.0, 38.0];
@@ -468,20 +468,20 @@ impl Login {
             for (i, (label, note, action, mark)) in [
                 (
                     "Microsoft",
-                    "Xbox 与 Minecraft",
+                    crate::i18n_launcher::tr("Xbox and Minecraft", "Xbox 与 Minecraft"),
                     Action::MicrosoftAccount,
                     "M",
                 ),
-                ("Ely.by", "其他登录方式", Action::ElySignIn, "E"),
+                ("Ely.by", crate::i18n_launcher::tr("Alternative auth", "其他登录方式"), Action::ElySignIn, "E"),
                 (
-                    "离线",
-                    "不登录直接游玩",
+                    crate::i18n_launcher::tr("Offline", "离线"),
+                    crate::i18n_launcher::tr("Play without signing in", "不登录直接游玩"),
                     Action::OfflineAccount,
                     "O",
                 ),
                 (
-                    "已保存的账号",
-                    "切换账号",
+                    crate::i18n_launcher::tr("Saved accounts", "已保存的账号"),
+                    crate::i18n_launcher::tr("Switch account", "切换账号"),
                     Action::SavedAccounts,
                     "S",
                 ),
@@ -525,7 +525,7 @@ impl Login {
                 ui,
                 targets,
                 [x + 20.0, footer_y, w - 40.0, 42.0],
-                "关闭",
+                crate::i18n_launcher::tr("Close", "关闭"),
                 Action::CloseLogin,
                 false,
             );
@@ -536,7 +536,7 @@ impl Login {
             let row_h = ((footer_y - content_y - 26.0) / 4.0).clamp(36.0, 56.0);
             let offline_current = self.profile.is_none();
             let offline_label = if offline_name.trim().is_empty() {
-                "离线玩家"
+                crate::i18n_launcher::tr("Offline player", "离线玩家")
             } else {
                 offline_name
             };
@@ -545,7 +545,7 @@ impl Login {
                 targets,
                 [x + 20.0, content_y, w - 40.0, row_h],
                 offline_label,
-                "离线账号",
+                crate::i18n_launcher::tr("Offline profile", "离线账号"),
                 offline_current,
                 Action::SelectOffline,
             );
@@ -598,7 +598,7 @@ impl Login {
                 ui,
                 targets,
                 [after, footer_y, add_w, 38.0],
-                "添加账号",
+                crate::i18n_launcher::tr("Add account", "添加账号"),
                 Action::AddAccount,
                 false,
             );
@@ -606,7 +606,7 @@ impl Login {
                 ui,
                 targets,
                 [after + add_w + 8.0, footer_y, rest - add_w - 8.0, 38.0],
-                "完成",
+                crate::i18n_launcher::tr("Done", "完成"),
                 Action::CloseLogin,
                 true,
             );
@@ -617,24 +617,24 @@ impl Login {
             for (i, (name, label, value, secret, placeholder)) in [
                 (
                     "ely_username",
-                    "用户名或邮箱",
+                    crate::i18n_launcher::tr("Username or email", "用户名或邮箱"),
                     self.username.as_str(),
                     false,
-                    "用户名或邮箱",
+                    crate::i18n_launcher::tr("Username or email", "用户名或邮箱"),
                 ),
                 (
                     "ely_password",
-                    "密码",
+                    crate::i18n_launcher::tr("Password", "密码"),
                     self.password.as_str(),
                     true,
-                    "密码",
+                    crate::i18n_launcher::tr("Password", "密码"),
                 ),
                 (
                     "ely_otp",
-                    "两步验证码",
+                    crate::i18n_launcher::tr("Two-factor code", "两步验证码"),
                     self.otp.as_str(),
                     true,
-                    "可选",
+                    crate::i18n_launcher::tr("Optional", "可选"),
                 ),
             ]
             .into_iter()
@@ -664,7 +664,7 @@ impl Login {
                     ui,
                     targets,
                     [x + 20.0, footer_y, w - 40.0, 42.0],
-                    "完成编辑",
+                    crate::i18n_launcher::tr("Done editing", "完成编辑"),
                     Action::FinishNameEdit,
                     true,
                 );
@@ -687,9 +687,9 @@ impl Login {
                 targets,
                 [x + 20.0, footer_y, w - 40.0, 42.0],
                 if self.pending() {
-                    "正在登录…"
+                    crate::i18n_launcher::tr("Signing in...", "正在登录…")
                 } else {
-                    "登录 Ely.by"
+                    crate::i18n_launcher::tr("Sign in to Ely.by", "登录 Ely.by")
                 },
                 Action::SubmitEly,
                 true,
@@ -698,7 +698,7 @@ impl Login {
                 ui,
                 targets,
                 [x + 20.0, footer_y - 48.0, w - 40.0, 36.0],
-                "返回账号",
+                crate::i18n_launcher::tr("Back to accounts", "返回账号"),
                 Action::Account,
                 false,
             );
@@ -712,9 +712,9 @@ impl Login {
                 content_y,
                 w - 40.0,
                 58.0,
-                "玩家名",
+                crate::i18n_launcher::tr("Player name", "玩家名"),
                 offline_name,
-                "输入名称",
+                crate::i18n_launcher::tr("Enter a name", "输入名称"),
                 focused,
             );
             targets.push(([x + 20.0, content_y, w - 40.0, 58.0], Action::Field("name")));
@@ -739,7 +739,7 @@ impl Login {
                     ui,
                     targets,
                     [x + 20.0, footer_y, w - 40.0, 42.0],
-                    "完成编辑",
+                    crate::i18n_launcher::tr("Done editing", "完成编辑"),
                     Action::FinishNameEdit,
                     true,
                 );
@@ -749,7 +749,7 @@ impl Login {
                 ui,
                 targets,
                 [x + 20.0, footer_y, w - 40.0, 42.0],
-                "使用离线账号",
+                crate::i18n_launcher::tr("Use offline account", "使用离线账号"),
                 Action::SelectOffline,
                 true,
             );
@@ -757,7 +757,7 @@ impl Login {
                 ui,
                 targets,
                 [x + 20.0, footer_y - 48.0, w - 40.0, 36.0],
-                "返回账号",
+                crate::i18n_launcher::tr("Back to accounts", "返回账号"),
                 Action::Account,
                 false,
             );
@@ -826,7 +826,7 @@ impl Login {
                 x + 34.0,
                 row_y + 12.0,
                 login_muted(),
-                "SIGN-IN CODE",
+                crate::i18n_launcher::tr("SIGN-IN CODE", "登录代码"),
             );
             ui.text(
                 Face::SemiBold,
@@ -842,7 +842,7 @@ impl Login {
                 ui,
                 targets,
                 [x + 20.0, row_y, half, 38.0],
-                "复制验证码",
+                crate::i18n_launcher::tr("Copy code", "复制验证码"),
                 Action::CopyLoginCode,
                 false,
             );
@@ -850,21 +850,21 @@ impl Login {
                 ui,
                 targets,
                 [x + 32.0 + half, row_y, half, 38.0],
-                "打开浏览器",
+                crate::i18n_launcher::tr("Open browser", "打开浏览器"),
                 Action::LoginLink,
                 false,
             );
             row_y += 46.0;
         } else {
             let text = if self.signed_in {
-                "你的账号已保存在此设备上，会话会自动续期。"
+                crate::i18n_launcher::tr("Your account is saved on this device. Sessions renew automatically.", "你的账号已保存在此设备上，会话会自动续期。")
             } else {
-                "你在微软浏览器中登录，本应用永远不会看到你的密码。"
+                crate::i18n_launcher::tr("You sign in inside Microsoft's browser; this app never sees your password.", "你在微软浏览器中登录，本应用永远不会看到你的密码。")
             };
             row_y = paragraph(ui, x + 20.0, row_y, w - 40.0, text, login_muted(), 2) + 8.0;
         }
         let message = if matches!(&self.state, Some(SignInState::Starting)) {
-            "正在请求登录码…"
+            crate::i18n_launcher::tr("Requesting a sign-in code...", "正在请求登录码…")
         } else {
             self.message.as_str()
         };
@@ -876,19 +876,19 @@ impl Login {
                 ui,
                 targets,
                 [x + 20.0, row_y, w - 40.0, 30.0],
-                "请求 Minecraft API 授权",
+                crate::i18n_launcher::tr("Request Minecraft API approval", "请求 Minecraft API 授权"),
                 Action::ReviewApp,
                 false,
             );
         }
         let (label, action) = if matches!(&self.state, Some(SignInState::Code(_))) {
-            ("复制验证码并打开浏览器", Action::LoginLink)
+            (crate::i18n_launcher::tr("Copy code and open browser", "复制验证码并打开浏览器"), Action::LoginLink)
         } else if self.pending() {
-            ("重新开始浏览器登录", Action::SignIn)
+            (crate::i18n_launcher::tr("Restart browser sign-in", "重新开始浏览器登录"), Action::SignIn)
         } else if self.signed_in {
-            ("切换微软账号", Action::SignIn)
+            (crate::i18n_launcher::tr("Switch Microsoft account", "切换微软账号"), Action::SignIn)
         } else {
-            ("在浏览器中登录", Action::SignIn)
+            (crate::i18n_launcher::tr("Sign in with browser", "在浏览器中登录"), Action::SignIn)
         };
         button(
             ui,
@@ -903,16 +903,16 @@ impl Login {
             ui,
             targets,
             [x + 20.0, footer_y - 48.0, half, 38.0],
-            "设备验证码",
+            crate::i18n_launcher::tr("Device code", "设备验证码"),
             Action::DeviceSignIn,
             false,
         );
         let (second_label, second_action) = if self.pending() {
-            ("取消", Action::CancelLogin)
+            (crate::i18n_launcher::tr("Cancel", "取消"), Action::CancelLogin)
         } else if self.profile.is_some() {
-            ("退出登录", Action::SignOut)
+            (crate::i18n_launcher::tr("Sign out", "退出登录"), Action::SignOut)
         } else {
-            ("返回", Action::Account)
+            (crate::i18n_launcher::tr("Back", "返回"), Action::Account)
         };
         button(
             ui,

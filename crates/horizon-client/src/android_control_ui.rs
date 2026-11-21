@@ -54,7 +54,7 @@ pub struct TouchUi {
     pub gyro_sensitivity_dragging: bool,
     /// The global button scale slider of the Buttons tab is being dragged.
     pub button_scale_dragging: bool,
-    /// Step state for the Floating Menu "发送自定义输入" picker modal.
+    /// Step state for the Floating Menu crate::i18n_launcher::tr("Send Custom Input", "发送自定义输入") picker modal.
     pub custom_input_picker: crate::android_controls::PickerStep,
     /// Horizontal scroll offset for the Floating Menu custom keyboard picker.
     pub custom_kb_scroll_x: f32,
@@ -384,17 +384,17 @@ const KEYS: [(&str, KeyCode); 28] = [
     ("F11", KeyCode::F11),
     ("F12", KeyCode::F12),
     ("Tab", KeyCode::Tab),
-    ("交换", KeyCode::KeyF),
-    ("丢弃", KeyCode::KeyQ),
+    (crate::i18n_launcher::tr("Swap", "交换"), KeyCode::KeyF),
+    (crate::i18n_launcher::tr("Drop", "丢弃"), KeyCode::KeyQ),
     ("Adv", KeyCode::KeyL),
-    ("聊天", KeyCode::KeyT),
+    (crate::i18n_launcher::tr("Chat", "聊天"), KeyCode::KeyT),
     ("/", KeyCode::Slash),
     ("Enter", KeyCode::Enter),
     ("Esc", KeyCode::Escape),
     ("Shift", KeyCode::ShiftLeft),
     ("Ctrl", KeyCode::ControlLeft),
     ("Inv", KeyCode::KeyE),
-    ("选取", KeyCode::ContextMenu),
+    (crate::i18n_launcher::tr("Pick", "选取"), KeyCode::ContextMenu),
     ("F3+B", KeyCode::KeyB),
     ("F3+G", KeyCode::KeyG),
     ("F3+A", KeyCode::KeyA),
@@ -964,7 +964,7 @@ impl TouchUi {
                 } else {
                     56.
                 };
-            button(b, a, "按键", right - 56., 3., 56.);
+            button(b, a, crate::i18n_launcher::tr("Keys", "按键"), right - 56., 3., 56.);
         }
         if menu && !self.goy_mode && self.virtual_mouse_available {
             button(
@@ -973,7 +973,7 @@ impl TouchUi {
                 if self.virtual_mouse {
                     "Mouse*"
                 } else {
-                    "鼠标"
+                    crate::i18n_launcher::tr("Mouse", "鼠标")
                 },
                 b.width - 112.,
                 3.,
@@ -981,7 +981,7 @@ impl TouchUi {
             );
         }
         if menu && !self.goy_mode && crate::android_controls::current_hud_opacity_scale() > 0.01 {
-            button(b, a, "返回", b.width - 53.0, 3.0, 50.0);
+            button(b, a, crate::i18n_launcher::tr("Back", "返回"), b.width - 53.0, 3.0, 50.0);
             if self.virtual_mouse {
                 let [lmb, rmb] = mouse_button_rects(b.width, b.height);
                 button(b, a, "LMB", lmb.0[0], lmb.0[1], lmb.0[2]);
@@ -1005,8 +1005,8 @@ impl TouchUi {
             ("...", 39.0, 33.0),
             ("F3", 75.0, 33.0),
             ("F5", 111.0, 33.0),
-            ("聊天", 147.0, 33.0),
-            ("按键", 183.0, 39.0),
+            (crate::i18n_launcher::tr("Chat", "聊天"), 147.0, 33.0),
+            (crate::i18n_launcher::tr("Keys", "按键"), 183.0, 39.0),
         ] {
             button(
                 b,
@@ -1086,7 +1086,7 @@ pub fn point_between_strips(px: [f32; 2], scale: f32, left: f32) -> [f32; 2] {
     [px[0] / scale - left, px[1] / scale]
 }
 
-/// Where the hub's title ends, and the line under it ("配置触摸按键…"), from the
+/// Where the hub's title ends, and the line under it (crate::i18n_launcher::tr("Configure touch controls...", "配置触摸按键…")), from the
 /// hub's left edge.
 const HUB_TITLE_END: f32 = 190.0;
 const HUB_LINE_END: f32 = 292.0;
@@ -1264,32 +1264,32 @@ const KB_ROWS: &[&[(&str, &str, f32)]] = &[
 ];
 
 const MOUSE_AND_ACTION_ITEMS: &[(&str, &str)] = &[
-    ("Left Click (LMB)", "key.mouse.left"),
-    ("Right Click (RMB)", "key.mouse.right"),
-    ("Middle Click (MMB)", "key.mouse.middle"),
+    (crate::i18n_launcher::tr("Left Click (LMB)", "左键 (LMB)"), "key.mouse.left"),
+    (crate::i18n_launcher::tr("Right Click (RMB)", "右键 (RMB)"), "key.mouse.right"),
+    (crate::i18n_launcher::tr("Middle Click (MMB)", "中键 (MMB)"), "key.mouse.middle"),
     ("Mouse 4 (Back)", "key.mouse.4"),
     ("Mouse 5 (Forward)", "key.mouse.5"),
-    ("滚轮上滑", "mouse.scroll.up"),
-    ("滚轮下滑", "mouse.scroll.down"),
-    ("切换虚拟鼠标", "mouse.virtual.toggle"),
-    ("鼠标视角区域", "mouse.look"),
-    ("Action: Attack / Mine", "action:key.attack"),
-    ("Action: Use / Place", "action:key.use"),
-    ("Action: Jump", "action:key.jump"),
-    ("Action: Sneak", "action:key.sneak"),
-    ("Action: Sprint", "action:key.sprint"),
-    ("Action: Swap Hands (F)", "action:key.swapOffhand"),
-    ("Action: Drop Item (Q)", "action:key.drop"),
-    ("Action: Inventory (E)", "action:key.inventory"),
-    ("Action: Pick Block", "action:key.pickItem"),
-    ("Action: Open Chat (T)", "action:key.chat"),
-    ("Action: Command (/)", "action:key.command"),
-    ("Action: Player List", "action:key.playerlist"),
+    (crate::i18n_launcher::tr("Scroll Wheel Up", "滚轮上滑"), "mouse.scroll.up"),
+    (crate::i18n_launcher::tr("Scroll Wheel Down", "滚轮下滑"), "mouse.scroll.down"),
+    (crate::i18n_launcher::tr("Toggle Virtual Mouse", "切换虚拟鼠标"), "mouse.virtual.toggle"),
+    (crate::i18n_launcher::tr("Mouse Look Area", "鼠标视角区域"), "mouse.look"),
+    (crate::i18n_launcher::tr("Action: Attack / Mine", "动作：攻击 / 挖掘"), "action:key.attack"),
+    (crate::i18n_launcher::tr("Action: Use / Place", "动作：使用 / 放置"), "action:key.use"),
+    (crate::i18n_launcher::tr("Action: Jump", "动作：跳跃"), "action:key.jump"),
+    (crate::i18n_launcher::tr("Action: Sneak", "动作：潜行"), "action:key.sneak"),
+    (crate::i18n_launcher::tr("Action: Sprint", "动作：疾跑"), "action:key.sprint"),
+    (crate::i18n_launcher::tr("Action: Swap Hands (F)", "动作：切换双手 (F)"), "action:key.swapOffhand"),
+    (crate::i18n_launcher::tr("Action: Drop Item (Q)", "动作：丢弃物品 (Q)"), "action:key.drop"),
+    (crate::i18n_launcher::tr("Action: Inventory (E)", "动作：打开物品栏 (E)"), "action:key.inventory"),
+    (crate::i18n_launcher::tr("Action: Pick Block", "动作：选取方块"), "action:key.pickItem"),
+    (crate::i18n_launcher::tr("Action: Open Chat (T)", "动作：打开聊天 (T)"), "action:key.chat"),
+    (crate::i18n_launcher::tr("Action: Command (/)", "动作：输入命令 (/)"), "action:key.command"),
+    (crate::i18n_launcher::tr("Action: Player List", "动作：玩家列表"), "action:key.playerlist"),
     ("Action: Hide HUD (F1)", "action:key.toggleGui"),
     ("Action: Screenshot (F2)", "action:key.screenshot"),
     ("Action: Debug Info (F3)", "action:key.debug.overlay"),
     ("Action: Perspective (F5)", "action:key.togglePerspective"),
-    ("Action: Advancements (L)", "action:key.advancements"),
+    (crate::i18n_launcher::tr("Action: Advancements (L)", "动作：进度 (L)"), "action:key.advancements"),
 ];
 
 fn draw_input_picker_modal(
@@ -1331,9 +1331,9 @@ fn draw_input_picker_modal(
                 format!("Assign Event Slot #{} — Choose Input Type", event_slot + 1)
             };
             let sub_str = if for_custom_send {
-                "Tap any physical key, use System Keyboard, or pick from the PC layout below."
+                crate::i18n_launcher::tr("Tap any physical key, use System Keyboard, or pick from the PC layout below.", "按下任意实体按键，使用系统键盘，或从下方电脑键盘布局中选择。")
             } else if mcpe_exclusive {
-                "Exclusive binding: Keyboard OR Mouse (selecting one clears the other)."
+                crate::i18n_launcher::tr("Exclusive binding: Keyboard OR Mouse (selecting one clears the other).", "互斥绑定：键盘或鼠标（选择其中一项会清除另一项）。")
             } else {
                 "Each GoyControl button can trigger up to 3 Keyboard or Mouse events simultaneously."
             };
@@ -1352,7 +1352,7 @@ fn draw_input_picker_modal(
             for (r, title, sub) in [
                 (
                     r_kb,
-                    "键盘按键",
+                    crate::i18n_launcher::tr("Keyboard Key", "键盘按键"),
                     if mcpe_exclusive {
                         "Bind 1 key (clears mouse binding)"
                     } else {
@@ -1400,7 +1400,7 @@ fn draw_input_picker_modal(
                 let r_can = [dx + 16.0, dy + 180.0, dw - 32.0, 36.0];
                 ui.rounded(r_can[0], r_can[1], r_can[2], r_can[3], 10.0, bg_hi);
                 ui.border(r_can[0], r_can[1], r_can[2], r_can[3], 10.0, border_c);
-                ui.centered_fit(Face::Medium, 11.0, r_can, text_c, "取消");
+                ui.centered_fit(Face::Medium, 11.0, r_can, text_c, crate::i18n_launcher::tr("Cancel", "取消"));
             } else {
                 let r_clr = [dx + 16.0, dy + 180.0, cw, 36.0];
                 let r_can = [dx + 24.0 + cw, dy + 180.0, cw, 36.0];
@@ -1411,11 +1411,11 @@ fn draw_input_picker_modal(
                     11.0,
                     r_clr,
                     danger_c,
-                    "清除/取消分配键位",
+                    crate::i18n_launcher::tr("Clear / Unassign Slot", "清除/取消分配键位"),
                 );
                 ui.rounded(r_can[0], r_can[1], r_can[2], r_can[3], 10.0, bg_hi);
                 ui.border(r_can[0], r_can[1], r_can[2], r_can[3], 10.0, border_c);
-                ui.centered_fit(Face::Medium, 11.0, r_can, text_c, "取消");
+                ui.centered_fit(Face::Medium, 11.0, r_can, text_c, crate::i18n_launcher::tr("Cancel", "取消"));
             }
         }
         PickerStep::Keyboard { event_slot } => {
@@ -1453,7 +1453,7 @@ fn draw_input_picker_modal(
                 (b_ime, "⌨ Sys Key"),
                 (b_left, "◀ Left"),
                 (b_right, "Right ▶"),
-                (b_back, "返回"),
+                (b_back, crate::i18n_launcher::tr("Back", "返回")),
             ] {
                 ui.rounded(r[0], r[1], r[2], r[3], 8.0, bg_hi);
                 ui.border(r[0], r[1], r[2], r[3], 8.0, border_c);
@@ -1523,7 +1523,7 @@ fn draw_input_picker_modal(
             let b_back = [dx + dw - 72.0, dy + 8.0, 58.0, 26.0];
             ui.rounded(b_back[0], b_back[1], b_back[2], b_back[3], 8.0, bg_hi);
             ui.border(b_back[0], b_back[1], b_back[2], b_back[3], 8.0, border_c);
-            ui.centered_fit(Face::SemiBold, 10.0, b_back, text_c, "返回");
+            ui.centered_fit(Face::SemiBold, 10.0, b_back, text_c, crate::i18n_launcher::tr("Back", "返回"));
 
             let cols = 3usize;
             let rows = MOUSE_AND_ACTION_ITEMS.len().div_ceil(cols).max(1);
@@ -2023,7 +2023,7 @@ impl TouchUi {
             }
         }
 
-        // 0. If "发送自定义输入" Picker Modal is open:
+        // 0. If crate::i18n_launcher::tr("Send Custom Input", "发送自定义输入") Picker Modal is open:
         if self.custom_input_picker != crate::android_controls::PickerStep::None {
             use crate::android_controls::PickerStep;
             if let Some((drag_id, last_x, mut moved)) = self.custom_kb_drag
@@ -2242,7 +2242,7 @@ impl TouchUi {
             let save_r = [mdx + 14.0, mdy + mdh - 38.0, mdw - 28.0, 30.0];
             if inside(save_r) {
                 let name = if dlg.name_input.trim().is_empty() {
-                    "自定义预设".to_owned()
+                    crate::i18n_launcher::tr("Custom Preset", "自定义预设").to_owned()
                 } else {
                     dlg.name_input.trim().to_owned()
                 };
@@ -2913,7 +2913,7 @@ impl TouchUi {
             dx + 52.0,
             dy + 8.0,
             text_c,
-            "Starling 控制中心",
+            crate::i18n_launcher::tr("Starling Control Hub", "Starling 控制中心"),
         );
         // The line under the title gives way to the Launcher button on a narrow hub.
         if hub_launcher_button(dx, dy, dw).is_none_or(|r| r[0] >= dx + HUB_LINE_END) {
@@ -2923,13 +2923,13 @@ impl TouchUi {
                 dx + 52.0,
                 dy + 25.0,
                 muted_c,
-                "Configure touch controls, virtual mouse & feedback",
+                crate::i18n_launcher::tr("Configure touch controls, virtual mouse & feedback", "配置触控、虚拟鼠标与反馈"),
             );
         }
 
         // Active Control System Pill Badge in Header
         let mode_badge_txt = if settings.control_style == ControlStyle::Mcpe {
-            "MCPE 按键"
+            crate::i18n_launcher::tr("MCPE Controls", "MCPE 按键")
         } else {
             "GoyControl HUD"
         };
@@ -2948,22 +2948,22 @@ impl TouchUi {
         if let Some(r) = hub_launcher_button(dx, dy, dw) {
             ui.rounded(r[0], r[1], r[2], r[3], 9.0, card_bg);
             ui.border(r[0], r[1], r[2], r[3], 9.0, border_c);
-            ui.centered_fit(Face::SemiBold, 11.0, r, text_c, "启动器");
+            ui.centered_fit(Face::SemiBold, 11.0, r, text_c, crate::i18n_launcher::tr("Launcher", "启动器"));
         }
 
-        // "完成" Button in top-right
+        // crate::i18n_launcher::tr("Done", "完成") Button in top-right
         let done_r = [dx + dw - 76.0, dy + 10.0, 62.0, 28.0];
         ui.rounded(done_r[0], done_r[1], done_r[2], done_r[3], 9.0, card_bg);
         ui.border(done_r[0], done_r[1], done_r[2], done_r[3], 9.0, border_c);
-        ui.centered_fit(Face::SemiBold, 11.0, done_r, text_c, "完成");
+        ui.centered_fit(Face::SemiBold, 11.0, done_r, text_c, crate::i18n_launcher::tr("Done", "完成"));
 
         // Left Sidebar Navigation Tabs (Recommended, Controls, Aiming, Buttons, Advanced)
         let tabs: [(Icon, &str); 5] = [
-            (Icon::HorizonLogo, "推荐"),
-            (Icon::Gamepad, "按键控制"),
-            (Icon::Crosshair, "瞄准"),
-            (Icon::MicrosoftGrid, "按钮"),
-            (Icon::Flask, "高级"),
+            (Icon::HorizonLogo, crate::i18n_launcher::tr("Recommended", "推荐")),
+            (Icon::Gamepad, crate::i18n_launcher::tr("Controls", "按键控制")),
+            (Icon::Crosshair, crate::i18n_launcher::tr("Aiming", "瞄准")),
+            (Icon::MicrosoftGrid, crate::i18n_launcher::tr("Buttons", "按钮")),
+            (Icon::Flask, crate::i18n_launcher::tr("Advanced", "高级")),
         ];
         let tab_start_y = dy + 54.0;
         for (ti, (ic, lbl)) in tabs.into_iter().enumerate() {
@@ -3135,7 +3135,7 @@ impl TouchUi {
                     cx + 14.0,
                     sens_y + 6.0,
                     text_c,
-                    "触屏视角灵敏度",
+                    crate::i18n_launcher::tr("Touch Look Sensitivity", "触屏视角灵敏度"),
                 );
                 let pct_txt = format!("{:.0}%", settings.sensitivity * 100.0);
                 let pill_w = 48.0;
@@ -3175,7 +3175,7 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 176.0,
-                    "虚拟鼠标按钮",
+                    crate::i18n_launcher::tr("Virtual Mouse Button", "虚拟鼠标按钮"),
                     "Off by default; enable for desktop pointer in menus & inventory",
                     Some(settings.virtual_mouse_enabled),
                     None,
@@ -3184,7 +3184,7 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 230.,
-                    "键盘按钮",
+                    crate::i18n_launcher::tr("Keyboard Button", "键盘按钮"),
                     "Show Keys beside Back; fields still open the keyboard automatically",
                     Some(settings.keyboard_button),
                     None,
@@ -3198,7 +3198,7 @@ impl TouchUi {
                     cx + 14.0,
                     spd_y + 6.0,
                     text_c,
-                    "虚拟鼠标速度",
+                    crate::i18n_launcher::tr("Virtual Mouse Speed", "虚拟鼠标速度"),
                 );
                 let spd_pct = format!("{:.0}%", settings.virtual_mouse_sensitivity * 100.0);
                 ui.rounded(
@@ -3243,11 +3243,11 @@ impl TouchUi {
                 let half_w = (cw - 10.0) * 0.5;
                 let sys_sub = format!("Active: {}", settings.control_style.label());
                 for (i, (ic, title, sub)) in [
-                    (Icon::Gamepad, "切换按键系统", sys_sub.as_str()),
+                    (Icon::Gamepad, crate::i18n_launcher::tr("Switch Control System", "切换按键系统"), sys_sub.as_str()),
                     (
                         Icon::MicrosoftGrid,
-                        "自定义按键",
-                        "Open layout & property studio",
+                        crate::i18n_launcher::tr("Customize Controls", "自定义按键"),
+                        crate::i18n_launcher::tr("Open layout & property studio", "打开布局与属性工作室"),
                     ),
                 ]
                 .into_iter()
@@ -3265,29 +3265,29 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 394.0,
-                    "游戏内动画",
-                    "Animated block textures, view bobbing, FOV transitions & menu motion",
+                    crate::i18n_launcher::tr("In-Game Animations", "游戏内动画"),
+                    crate::i18n_launcher::tr("Animated block textures, view bobbing, FOV transitions & menu motion", "动态方块贴图、视角晃动、FOV 过渡与菜单动画"),
                     Some(!settings.disable_game_animations),
                     None,
                 );
                 draw_toggle_row(
                     &mut ui,
                     body_y + 448.0,
-                    "后台暂停",
-                    "当 Starling 离开屏幕时暂停游戏及其音效",
+                    crate::i18n_launcher::tr("Pause in the Background", "后台暂停"),
+                    crate::i18n_launcher::tr("Pause the game and its sound when Starling leaves the screen", "当 Starling 离开屏幕时暂停游戏及其音效"),
                     Some(self.pause_in_background),
                     None,
                 );
             }
             1 => {
                 // 1. Control Mode Section
-                ui.text(Face::SemiBold, 10.2, cx, body_y, muted_c, "控制模式");
+                ui.text(Face::SemiBold, 10.2, cx, body_y, muted_c, crate::i18n_launcher::tr("CONTROL MODE", "控制模式"));
                 let mode_y = body_y + 18.0;
                 let half_w = (cw - 10.0) * 0.5;
                 let is_mcpe = settings.control_style == ControlStyle::Mcpe;
                 for (i, (title, sub, sel)) in [
-                    ("MCPE (Default)", "原版触屏按键", is_mcpe),
-                    ("GoyControl", "Custom layout & keybinds", !is_mcpe),
+                    ("MCPE (Default)", crate::i18n_launcher::tr("Vanilla touch controls", "原版触屏按键"), is_mcpe),
+                    ("GoyControl", crate::i18n_launcher::tr("Custom layout & keybinds", "自定义布局与按键绑定"), !is_mcpe),
                 ]
                 .into_iter()
                 .enumerate()
@@ -3342,12 +3342,12 @@ impl TouchUi {
                 for (i, (ic, title, sub)) in [
                     (
                         Icon::MicrosoftGrid,
-                        "自定义按键",
-                        "打开布局编辑器",
+                        crate::i18n_launcher::tr("Customize Controls", "自定义按键"),
+                        crate::i18n_launcher::tr("Open layout editor", "打开布局编辑器"),
                     ),
                     (
                         Icon::Settings,
-                        "按键预设",
+                        crate::i18n_launcher::tr("Control Presets", "按键预设"),
                         active_preset_lbl.as_str(),
                     ),
                 ]
@@ -3389,7 +3389,7 @@ impl TouchUi {
                     cx + 14.0,
                     sens_y + 6.0,
                     text_c,
-                    "触屏视角灵敏度",
+                    crate::i18n_launcher::tr("Touch Look Sensitivity", "触屏视角灵敏度"),
                 );
                 let pct_txt = format!("{:.0}%", settings.sensitivity * 100.0);
                 let pill_w = 48.0;
@@ -3430,7 +3430,7 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 206.0,
-                    "虚拟鼠标按钮",
+                    crate::i18n_launcher::tr("Virtual Mouse Button", "虚拟鼠标按钮"),
                     "Windows 11 pointer; auto-shows when MCPE controls are hidden",
                     Some(settings.virtual_mouse_enabled),
                     None,
@@ -3438,16 +3438,16 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 260.0,
-                    "反转 Y 轴",
-                    "反转垂直视角方向",
+                    crate::i18n_launcher::tr("Invert Y-Axis", "反转 Y 轴"),
+                    crate::i18n_launcher::tr("Reverse vertical camera look direction", "反转垂直视角方向"),
                     Some(settings.invert_y),
                     None,
                 );
                 draw_toggle_row(
                     &mut ui,
                     body_y + 314.0,
-                    "Split Touch (Aim & Look)",
-                    "使用中心准星而非点击任意处交互",
+                    crate::i18n_launcher::tr("Split Touch (Aim & Look)", "分屏触控（瞄准与视角）"),
+                    crate::i18n_launcher::tr("Use center crosshair instead of tap-anywhere interaction", "使用中心准星而非点击任意处交互"),
                     Some(settings.crosshair()),
                     None,
                 );
@@ -3500,7 +3500,7 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 18.0 + step,
-                    "摇杆活动区",
+                    crate::i18n_launcher::tr("Joystick Active Zone", "摇杆活动区"),
                     area_lbl,
                     None,
                     None,
@@ -3508,8 +3508,8 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 18.0 + step * 2.0,
-                    "虚拟鼠标按钮",
-                    "MCPE 与 GoyControl 菜单的主控开关",
+                    crate::i18n_launcher::tr("Virtual Mouse Button", "虚拟鼠标按钮"),
+                    crate::i18n_launcher::tr("Authoritative toggle for MCPE and GoyControl menus", "MCPE 与 GoyControl 菜单的主控开关"),
                     Some(settings.virtual_mouse_enabled),
                     None,
                 );
@@ -3524,7 +3524,7 @@ impl TouchUi {
                     cx + 14.0,
                     spd_y + 6.0,
                     text_c,
-                    "虚拟鼠标速度",
+                    crate::i18n_launcher::tr("Virtual Mouse Speed", "虚拟鼠标速度"),
                 );
                 let spd_pct = format!("{:.0}%", settings.virtual_mouse_sensitivity * 100.0);
                 let spd_pill_w = 48.0;
@@ -3585,7 +3585,7 @@ impl TouchUi {
                     cx + 14.0,
                     size_y + 6.0,
                     text_c,
-                    "指针大小",
+                    crate::i18n_launcher::tr("Pointer Size", "指针大小"),
                 );
                 let size_pct = format!("{:.0}%", settings.virtual_mouse_pointer_scale * 100.0);
                 let size_pill_w = 48.0;
@@ -3645,8 +3645,8 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 296.0,
-                    "陀螺仪瞄准",
-                    "倾斜设备微调视角与弓箭瞄准",
+                    crate::i18n_launcher::tr("Gyroscope Aiming", "陀螺仪瞄准"),
+                    crate::i18n_launcher::tr("Tilt device for fine camera and bow aiming", "倾斜设备微调视角与弓箭瞄准"),
                     Some(settings.gyroscope),
                     None,
                 );
@@ -3660,7 +3660,7 @@ impl TouchUi {
                     cx + 14.0,
                     gyro_y + 6.0,
                     text_c,
-                    "陀螺仪灵敏度",
+                    crate::i18n_launcher::tr("Gyroscope Sensitivity", "陀螺仪灵敏度"),
                 );
                 let gyro_pct = format!("{:.0}%", settings.gyro_sensitivity * 100.0);
                 let gyro_pill_w = 48.0;
@@ -3720,16 +3720,16 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 234.,
-                    "副手按钮",
-                    "显示换手按钮",
+                    crate::i18n_launcher::tr("Offhand Button", "副手按钮"),
+                    crate::i18n_launcher::tr("Show the swap-hands button", "显示换手按钮"),
                     Some(settings.offhand_button),
                     None,
                 );
                 draw_toggle_row(
                     &mut ui,
                     body_y + 288.,
-                    "独立举盾按钮",
-                    "关闭时用下蹲举盾",
+                    crate::i18n_launcher::tr("Separate Shield Button", "独立举盾按钮"),
+                    crate::i18n_launcher::tr("Off uses crouching to raise the shield", "关闭时用下蹲举盾"),
                     Some(settings.shield_button),
                     None,
                 );
@@ -3752,7 +3752,7 @@ impl TouchUi {
                     cx + 14.0,
                     scale_y + 6.0,
                     text_c,
-                    "全局按钮缩放",
+                    crate::i18n_launcher::tr("Global Button Scale", "全局按钮缩放"),
                 );
                 let sc_pct = format!("{:.0}%", settings.button_scale * 100.0);
                 let sc_pill_w = 48.0;
@@ -3798,24 +3798,24 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 18.0 + step,
-                    "左手布局",
-                    "水平镜像移动与动作按钮",
+                    crate::i18n_launcher::tr("Left-Handed Layout", "左手布局"),
+                    crate::i18n_launcher::tr("Mirror movement and action buttons horizontally", "水平镜像移动与动作按钮"),
                     Some(settings.left_handed),
                     None,
                 );
                 draw_toggle_row(
                     &mut ui,
                     body_y + 18.0 + step * 2.0,
-                    "切换疾跑",
-                    "单击锁定疾跑而非按住",
+                    crate::i18n_launcher::tr("Toggle Sprint", "切换疾跑"),
+                    crate::i18n_launcher::tr("Latch sprint on tap instead of holding", "单击锁定疾跑而非按住"),
                     Some(settings.sprint_toggle || settings.toggle_sprint),
                     None,
                 );
                 draw_toggle_row(
                     &mut ui,
                     body_y + 18.0 + step * 3.0,
-                    "背包行走控制",
-                    "背包打开时保持移动控制",
+                    crate::i18n_launcher::tr("Inventory Walk Controls", "背包行走控制"),
+                    crate::i18n_launcher::tr("Keep movement controls active while inventory is open", "背包打开时保持移动控制"),
                     Some(settings.inventory_controls),
                     None,
                 );
@@ -3863,15 +3863,15 @@ impl TouchUi {
                     ],
                     text_c,
                     if settings.vibrate {
-                        "Gameplay vibration: ON"
+                        crate::i18n_launcher::tr("Gameplay vibration: ON", "游戏振动：开")
                     } else {
-                        "Gameplay vibration: OFF"
+                        crate::i18n_launcher::tr("Gameplay vibration: OFF", "游戏振动：关")
                     },
                 );
                 draw_toggle_row(
                     &mut ui,
                     body_y + 18.0 + step,
-                    "自动跳跃",
+                    crate::i18n_launcher::tr("Auto-Jump", "自动跳跃"),
                     "Automatically jump when walking into 1-block ledges",
                     Some(settings.auto_jump),
                     None,
@@ -3879,8 +3879,8 @@ impl TouchUi {
                 draw_toggle_row(
                     &mut ui,
                     body_y + 18.0 + step * 2.0,
-                    "应用标准菜单可见性",
-                    "重置当前系统在游戏内与菜单中的可见性标记",
+                    crate::i18n_launcher::tr("Apply Standard Menu Visibility", "应用标准菜单可见性"),
+                    crate::i18n_launcher::tr("Reset in-game vs in-menu visibility flags for active system", "重置当前系统在游戏内与菜单中的可见性标记"),
                     None,
                     None,
                 );
@@ -3894,7 +3894,7 @@ impl TouchUi {
                 );
                 let ky = body_y + 198.0;
                 let kw = (cw - 25.0) / 6.0;
-                for (i, lbl) in ["F1", "F3", "F5", "Inv", "聊天", "按键"]
+                for (i, lbl) in ["F1", "F3", "F5", "Inv", crate::i18n_launcher::tr("Chat", "聊天"), crate::i18n_launcher::tr("Keys", "按键")]
                     .into_iter()
                     .enumerate()
                 {
@@ -3919,7 +3919,7 @@ impl TouchUi {
                     cx + 38.0,
                     send_y + 5.0,
                     text_c,
-                    "Send Custom Input (Keyboard / Mouse / Action)",
+                    crate::i18n_launcher::tr("Send Custom Input (Keyboard / Mouse / Action)", "发送自定义输入（键盘 / 鼠标 / 动作）"),
                 );
                 ui.text(
                     Face::Regular,
@@ -3954,7 +3954,7 @@ impl TouchUi {
                     10.8,
                     [cx, sys_y, half, 38.0],
                     danger_c,
-                    "强制结束",
+                    crate::i18n_launcher::tr("Force Kill", "强制结束"),
                 );
                 ui.rounded(cx + half + 10.0, sys_y, half, 38.0, 10.0, card_bg);
                 ui.border(cx + half + 10.0, sys_y, half, 38.0, 10.0, border_c);
@@ -3963,7 +3963,7 @@ impl TouchUi {
                     10.8,
                     [cx + half + 10.0, sys_y, half, 38.0],
                     text_c,
-                    "打开日志",
+                    crate::i18n_launcher::tr("Open Logs", "打开日志"),
                 );
             }
         }
@@ -4012,7 +4012,7 @@ impl TouchUi {
             let back_r = [mdx + mdw - 78.0, mdy + 10.0, 64.0, 28.0];
             ui.rounded(back_r[0], back_r[1], back_r[2], back_r[3], 9.0, card_bg);
             ui.border(back_r[0], back_r[1], back_r[2], back_r[3], 9.0, border_c);
-            ui.centered_fit(Face::SemiBold, 10.5, back_r, text_c, "返回");
+            ui.centered_fit(Face::SemiBold, 10.5, back_r, text_c, crate::i18n_launcher::tr("Back", "返回"));
 
             let list_y = mdy + 48.0;
             let row_h = 46.0;
@@ -4142,7 +4142,7 @@ impl TouchUi {
                     copy_r[0] + 24.0,
                     copy_r[1] + 7.0,
                     text_c,
-                    "复制",
+                    crate::i18n_launcher::tr("Copy", "复制"),
                 );
             }
         }
@@ -4165,7 +4165,7 @@ impl TouchUi {
                 if dlg.is_copy {
                     "Copy Preset Layout — Enter Name & Description"
                 } else {
-                    "Edit Preset Name & Description"
+                    crate::i18n_launcher::tr("Edit Preset Name & Description", "编辑预设名称与描述")
                 },
             );
             let cancel_r = [mdx + mdw - 76.0, mdy + 10.0, 64.0, 26.0];
@@ -4185,7 +4185,7 @@ impl TouchUi {
                 8.0,
                 border_c,
             );
-            ui.centered_fit(Face::SemiBold, 10.0, cancel_r, text_c, "取消");
+            ui.centered_fit(Face::SemiBold, 10.0, cancel_r, text_c, crate::i18n_launcher::tr("Cancel", "取消"));
 
             let name_r = [mdx + 14.0, mdy + 42.0, (mdw - 36.0) * 0.45, 48.0];
             let desc_r = [
@@ -4199,9 +4199,9 @@ impl TouchUi {
                 name_r[1],
                 name_r[2],
                 name_r[3],
-                "预设名称",
+                crate::i18n_launcher::tr("PRESET NAME", "预设名称"),
                 dlg.name_input.as_str(),
-                "点击输入",
+                crate::i18n_launcher::tr("Tap to type", "点击输入"),
                 !dlg.editing_desc,
             );
             ui.text_field(
@@ -4209,9 +4209,9 @@ impl TouchUi {
                 desc_r[1],
                 desc_r[2],
                 desc_r[3],
-                "描述",
+                crate::i18n_launcher::tr("DESCRIPTION", "描述"),
                 dlg.desc_input.as_str(),
-                "点击输入",
+                crate::i18n_launcher::tr("Tap to type", "点击输入"),
                 dlg.editing_desc,
             );
 
@@ -4231,9 +4231,9 @@ impl TouchUi {
                 save_r,
                 text_c,
                 if dlg.is_copy {
-                    "创建独立预设副本"
+                    crate::i18n_launcher::tr("Create Independent Preset Copy", "创建独立预设副本")
                 } else {
-                    "保存预设详情"
+                    crate::i18n_launcher::tr("Save Preset Details", "保存预设详情")
                 },
             );
         }
@@ -4282,12 +4282,12 @@ fn clamp_editor_custom_selection(
 
 fn shape_name(shape: u8) -> &'static str {
     match shape {
-        1 => "方形",
-        2 => "圆形/胶囊",
-        3 => "切角八边形",
-        4 => "菱形",
-        5 => "六边形",
-        _ => "圆角",
+        1 => crate::i18n_launcher::tr("Square", "方形"),
+        2 => crate::i18n_launcher::tr("Circle/Pill", "圆形/胶囊"),
+        3 => crate::i18n_launcher::tr("Cut Octagon", "切角八边形"),
+        4 => crate::i18n_launcher::tr("Diamond", "菱形"),
+        5 => crate::i18n_launcher::tr("Hexagon", "六边形"),
+        _ => crate::i18n_launcher::tr("Rounded", "圆角"),
     }
 }
 
@@ -4296,24 +4296,24 @@ pub fn control_icon_from_id(
 ) -> Option<(crate::android_control_theme::Icon, &'static str)> {
     use crate::android_control_theme::Icon;
     match icon_id {
-        1 => Some((Icon::Crosshair, "准星")),
-        2 => Some((Icon::Gamepad, "手柄")),
-        3 => Some((Icon::Play, "攻击")),
-        4 => Some((Icon::Pause, "暂停")),
-        5 => Some((Icon::Settings, "设置")),
-        6 => Some((Icon::Search, "缩放")),
-        7 => Some((Icon::Check, "确认")),
-        8 => Some((Icon::Monitor, "视角")),
-        9 => Some((Icon::Flask, "使用/药水")),
-        10 => Some((Icon::Terminal, "调试/命令")),
-        11 => Some((Icon::MicrosoftGrid, "背包")),
-        12 => Some((Icon::Share, "交换/丢弃")),
+        1 => Some((Icon::Crosshair, crate::i18n_launcher::tr("Crosshair", "准星"))),
+        2 => Some((Icon::Gamepad, crate::i18n_launcher::tr("Gamepad", "手柄"))),
+        3 => Some((Icon::Play, crate::i18n_launcher::tr("Attack", "攻击"))),
+        4 => Some((Icon::Pause, crate::i18n_launcher::tr("Pause", "暂停"))),
+        5 => Some((Icon::Settings, crate::i18n_launcher::tr("Settings", "设置"))),
+        6 => Some((Icon::Search, crate::i18n_launcher::tr("Zoom", "缩放"))),
+        7 => Some((Icon::Check, crate::i18n_launcher::tr("Confirm", "确认"))),
+        8 => Some((Icon::Monitor, crate::i18n_launcher::tr("Camera", "视角"))),
+        9 => Some((Icon::Flask, crate::i18n_launcher::tr("Use/Potion", "使用/药水"))),
+        10 => Some((Icon::Terminal, crate::i18n_launcher::tr("Debug/Cmd", "调试/命令"))),
+        11 => Some((Icon::MicrosoftGrid, crate::i18n_launcher::tr("Inventory", "背包"))),
+        12 => Some((Icon::Share, crate::i18n_launcher::tr("Swap/Drop", "交换/丢弃"))),
         _ => None,
     }
 }
 
 pub fn control_icon_label(icon_id: u8) -> &'static str {
-    control_icon_from_id(icon_id).map_or("仅文字", |(_, name)| name)
+    control_icon_from_id(icon_id).map_or(crate::i18n_launcher::tr("Text Only", "仅文字"), |(_, name)| name)
 }
 
 fn draw_button_icon_and_label(
@@ -4897,14 +4897,14 @@ pub fn draw_hud_editor(
         let items: [(Option<Icon>, &str, f32, bool, bool); 5] = [
             (Some(Icon::Undo), "", 42.0, !ed.undo_stack.is_empty(), false),
             (Some(Icon::Redo), "", 42.0, !ed.redo_stack.is_empty(), false),
-            (Some(Icon::Gear), "属性", 72.0, true, ed.props_open),
+            (Some(Icon::Gear), crate::i18n_launcher::tr("Props", "属性"), 72.0, true, ed.props_open),
             (Some(Icon::Plus), "Add", 64.0, true, false),
-            (Some(Icon::Check), "保存", 68.0, true, true),
+            (Some(Icon::Check), crate::i18n_launcher::tr("Save", "保存"), 68.0, true, true),
         ];
         let mut ix = pod_x + 50.0;
         for (ic, lbl, iw, enabled, hi) in items {
             let r = [ix, pod_y + 5.0, iw, 38.0];
-            let bg = if lbl == "保存" {
+            let bg = if lbl == crate::i18n_launcher::tr("Save", "保存") {
                 accent
             } else if hi {
                 accent_soft
@@ -4918,13 +4918,13 @@ pub fn draw_hud_editor(
                 r[2],
                 r[3],
                 19.0,
-                if hi || lbl == "保存" {
+                if hi || lbl == crate::i18n_launcher::tr("Save", "保存") {
                     accent
                 } else {
                     border_c
                 },
             );
-            let fg = if lbl == "保存" {
+            let fg = if lbl == crate::i18n_launcher::tr("Save", "保存") {
                 accent_fg
             } else if !enabled {
                 color::hex(0x5E5875, 200)
@@ -4980,7 +4980,7 @@ pub fn draw_hud_editor(
             dx + 18.0,
             dy + 16.0,
             text_c,
-            "未保存的布局更改",
+            crate::i18n_launcher::tr("Unsaved Layout Changes", "未保存的布局更改"),
         );
         ui.text(
             Face::Regular,
@@ -4988,7 +4988,7 @@ pub fn draw_hud_editor(
             dx + 18.0,
             dy + 42.0,
             muted_c,
-            "你已在本会话中修改了按键布局。",
+            crate::i18n_launcher::tr("You have modified your control layout in this session.", "你已在本会话中修改了按键布局。"),
         );
         ui.text(
             Face::Regular,
@@ -5003,10 +5003,10 @@ pub fn draw_hud_editor(
         let save_r = [dx + 18.0, by, bw, 36.0];
         let back_r = [dx + 26.0 + bw, by, bw, 36.0];
         ui.rounded(save_r[0], save_r[1], save_r[2], save_r[3], 10.0, accent);
-        ui.centered_fit(Face::SemiBold, 11.5, save_r, accent_fg, "保存");
+        ui.centered_fit(Face::SemiBold, 11.5, save_r, accent_fg, crate::i18n_launcher::tr("Save", "保存"));
         ui.rounded(back_r[0], back_r[1], back_r[2], back_r[3], 10.0, bg_hi);
         ui.border(back_r[0], back_r[1], back_r[2], back_r[3], 10.0, danger_c);
-        ui.centered_fit(Face::SemiBold, 11.5, back_r, danger_c, "返回");
+        ui.centered_fit(Face::SemiBold, 11.5, back_r, danger_c, crate::i18n_launcher::tr("Back", "返回"));
         ui.finish();
         return;
     }
@@ -5054,7 +5054,7 @@ pub fn draw_hud_editor(
         let (header_txt, sub_txt) = if is_joystick {
             (
                 "Joystick & Analog Base Inspector".to_owned(),
-                "Customize stick knob, analog base ring, active zone & visibility",
+                crate::i18n_launcher::tr("Customize stick knob, analog base ring, active zone & visibility", "自定义摇杆头、模拟底盘圆环、活动区域与可见性"),
             )
         } else if let Some(idx) = ed.selected_custom {
             let lbl = tc
@@ -5062,7 +5062,7 @@ pub fn draw_hud_editor(
                 .custom_buttons
                 .get(idx)
                 .map(|b| b.label())
-                .unwrap_or_else(|| "按钮".into());
+                .unwrap_or_else(|| crate::i18n_launcher::tr("Buttons", "按钮").into());
             if is_mcpe_mode {
                 (
                     format!("MCPE Custom Button — {lbl}"),
@@ -5071,18 +5071,18 @@ pub fn draw_hud_editor(
             } else {
                 (
                     format!("GoyControl Button — {lbl}"),
-                    "Customize visual style, icon badge, geometry, stroke & events",
+                    crate::i18n_launcher::tr("Customize visual style, icon badge, geometry, stroke & events", "自定义视觉样式、图标徽章、几何形状、描边与事件"),
                 )
             }
         } else if let Some(c) = ed.selected {
             (
                 format!("MCPE Component — {}", c.name()),
-                "Customize style, icon, opacity, shape, stroke & visibility",
+                crate::i18n_launcher::tr("Customize style, icon, opacity, shape, stroke & visibility", "自定义样式、图标、不透明度、形状、描边与可见性"),
             )
         } else {
             (
-                "组件属性".to_owned(),
-                "Configure control appearance & behavior",
+                crate::i18n_launcher::tr("Component Properties", "组件属性").to_owned(),
+                crate::i18n_launcher::tr("Configure control appearance & behavior", "配置控件外观与行为"),
             )
         };
         let cur_pl = if let Some(idx) = ed.selected_custom {
@@ -5336,7 +5336,7 @@ pub fn draw_hud_editor(
                         js.stick_stroke_color,
                     );
 
-                    // Bottom Swatch Card ("摇杆颜色" + Circular Swatches + Right Cycle Stroke Button)
+                    // Bottom Swatch Card (crate::i18n_launcher::tr("STICK COLOR", "摇杆颜色") + Circular Swatches + Right Cycle Stroke Button)
                     let sw_y = cards_y + card_h + 8.0;
                     let sw_card_h = (box_y + box_h - sw_y - 10.0).clamp(48.0, 62.0);
                     ui.rounded(wx + 12.0, sw_y, ww - 24.0, sw_card_h, 12.0, st_card);
@@ -5347,7 +5347,7 @@ pub fn draw_hud_editor(
                         wx + 22.0,
                         sw_y + 6.0,
                         st_muted,
-                        "摇杆颜色",
+                        crate::i18n_launcher::tr("STICK COLOR", "摇杆颜色"),
                     );
                     let sw_d = 20.0;
                     let sw_row_y = sw_y + sw_card_h - sw_d - 7.0;
@@ -5499,7 +5499,7 @@ pub fn draw_hud_editor(
                         wx + 22.0,
                         sw_y + 6.0,
                         st_muted,
-                        "基础色",
+                        crate::i18n_launcher::tr("BASE COLOR", "基础色"),
                     );
                     let sw_d = 20.0;
                     let sw_row_y = sw_y + sw_card_h - sw_d - 7.0;
@@ -5609,7 +5609,7 @@ pub fn draw_hud_editor(
                         y6 + 8.0,
                         18.0,
                         p_move.visible_in_game,
-                        "游戏中可见",
+                        crate::i18n_launcher::tr("Visible in Game", "游戏中可见"),
                     );
 
                     let vm_x = wx + 12.0 + third + 4.0;
@@ -5642,7 +5642,7 @@ pub fn draw_hud_editor(
                         y6 + 8.0,
                         18.0,
                         p_move.visible_in_menu,
-                        "菜单中可见",
+                        crate::i18n_launcher::tr("Visible in Menu", "菜单中可见"),
                     );
 
                     let pv_x = wx + 12.0 + (third + 4.0) * 2.0;
@@ -5653,7 +5653,7 @@ pub fn draw_hud_editor(
                         9.5,
                         [pv_x + 4.0, y6, third - 8.0, 34.0],
                         st_cyan,
-                        "所有预设可见性",
+                        crate::i18n_launcher::tr("Preset Vis for All", "所有预设可见性"),
                     );
                 }
             }
@@ -5735,7 +5735,7 @@ pub fn draw_hud_editor(
                     draw_m3_selector_cell(
                         &mut ui,
                         [wx + 12.0 + (cw3 + 8.0), cards_y, cw3, card_h],
-                        "图标徽章",
+                        crate::i18n_launcher::tr("Icon Badge", "图标徽章"),
                         icon_lbl,
                         st_cyan,
                         st_cyan_soft,
@@ -5746,7 +5746,7 @@ pub fn draw_hud_editor(
                     draw_m3_selector_cell(
                         &mut ui,
                         [wx + 12.0 + (cw3 + 8.0) * 2.0, cards_y, cw3, card_h],
-                        "提示标签",
+                        crate::i18n_launcher::tr("Hint Label", "提示标签"),
                         &cur_hint,
                         st_cyan,
                         st_cyan_soft,
@@ -5794,7 +5794,7 @@ pub fn draw_hud_editor(
                         st_text,
                     );
 
-                    // Bottom Swatch Card ("按钮颜色" + Circular Swatches + onClick/onToggle Cycle Pills)
+                    // Bottom Swatch Card (crate::i18n_launcher::tr("BUTTON COLOR", "按钮颜色") + Circular Swatches + onClick/onToggle Cycle Pills)
                     let sw_y = cards_y + card_h + 8.0;
                     let sw_card_h = (box_y + box_h - sw_y - 10.0).clamp(48.0, 62.0);
                     ui.rounded(wx + 12.0, sw_y, ww - 24.0, sw_card_h, 12.0, st_card);
@@ -5805,7 +5805,7 @@ pub fn draw_hud_editor(
                         wx + 22.0,
                         sw_y + 6.0,
                         st_muted,
-                        "按钮颜色",
+                        crate::i18n_launcher::tr("BUTTON COLOR", "按钮颜色"),
                     );
                     let sw_d = 20.0;
                     let sw_row_y = sw_y + sw_card_h - sw_d - 7.0;
@@ -6012,7 +6012,7 @@ pub fn draw_hud_editor(
                         wx + 22.0,
                         sw_y + 6.0,
                         st_muted,
-                        "描边颜色",
+                        crate::i18n_launcher::tr("STROKE COLOR", "描边颜色"),
                     );
                     let sw_d = 20.0;
                     let sw_row_y = sw_y + sw_card_h - sw_d - 7.0;
@@ -6039,7 +6039,7 @@ pub fn draw_hud_editor(
                     ];
                     ui.rounded(act_r[0], act_r[1], act_r[2], act_r[3], 10.0, st_inner);
                     ui.stroke_rounded(act_r[0], act_r[1], act_r[2], act_r[3], 10.0, 1.5, st_cyan);
-                    ui.centered_fit(Face::SemiBold, 8.8, act_r, st_text, "Reset Shape & Scale");
+                    ui.centered_fit(Face::SemiBold, 8.8, act_r, st_text, crate::i18n_launcher::tr("Reset Shape & Scale", "重置形状与缩放"));
                 }
                 _ => {
                     // Button Tab 2: Events, Behavior Toggles & Visibility Checkboxes
@@ -6120,17 +6120,17 @@ pub fn draw_hud_editor(
                                             b.event_slot(slot),
                                         )
                                     })
-                                    .unwrap_or_else(|| "未分配".into())
+                                    .unwrap_or_else(|| crate::i18n_launcher::tr("Unassigned", "未分配").into())
                             } else if let Some(c) = ed.selected {
                                 if slot == 0 {
                                     c.name().to_owned()
                                 } else {
-                                    "内置".to_owned()
+                                    crate::i18n_launcher::tr("Built-in", "内置").to_owned()
                                 }
                             } else {
-                                "未分配".into()
+                                crate::i18n_launcher::tr("Unassigned", "未分配").into()
                             };
-                            let has_binding = tok_name != "未分配" && tok_name != "无";
+                            let has_binding = tok_name != crate::i18n_launcher::tr("Unassigned", "未分配") && tok_name != crate::i18n_launcher::tr("None", "无");
                             ui.rounded(
                                 ex,
                                 body_y,
@@ -6201,7 +6201,7 @@ pub fn draw_hud_editor(
                         ),
                         (
                             if ed.selected_custom.is_some() {
-                                "删除按钮"
+                                crate::i18n_launcher::tr("Delete Button", "删除按钮")
                             } else if is_vis {
                                 "Visible: YES"
                             } else {
@@ -6289,7 +6289,7 @@ pub fn draw_hud_editor(
                         vy + 5.0,
                         18.0,
                         p.visible_in_game,
-                        "游戏中可见",
+                        crate::i18n_launcher::tr("Visible in Game", "游戏中可见"),
                     );
 
                     let vm_x = wx + 12.0 + third + 4.0;
@@ -6322,7 +6322,7 @@ pub fn draw_hud_editor(
                         vy + 5.0,
                         18.0,
                         p.visible_in_menu,
-                        "菜单中可见",
+                        crate::i18n_launcher::tr("Visible in Menu", "菜单中可见"),
                     );
 
                     let pv_x = wx + 12.0 + (third + 4.0) * 2.0;
@@ -6333,7 +6333,7 @@ pub fn draw_hud_editor(
                         9.2,
                         [pv_x + 4.0, vy, third - 8.0, 28.0],
                         st_cyan,
-                        "所有预设可见性",
+                        crate::i18n_launcher::tr("Preset Vis for All", "所有预设可见性"),
                     );
                 }
             }
@@ -6401,7 +6401,7 @@ pub fn draw_hud_editor(
             7.0,
             border_c,
         );
-        ui.centered_fit(Face::SemiBold, 9.5, cancel_r, text_c, "取消");
+        ui.centered_fit(Face::SemiBold, 9.5, cancel_r, text_c, crate::i18n_launcher::tr("Cancel", "取消"));
 
         // Option A: Replace existing preset (disabled/protected when Default is active)
         let is_def = tc.settings.is_default_preset();
@@ -6433,13 +6433,13 @@ pub fn draw_hud_editor(
             opt_a_r[1] + 6.0,
             if is_def { muted_c } else { text_c },
             if is_def {
-                "Option A: Replace existing preset (Protected)"
+                crate::i18n_launcher::tr("Option A: Replace existing preset (Protected)", "选项 A：替换现有预设（受保护）")
             } else {
-                "Option A: Replace existing preset"
+                crate::i18n_launcher::tr("Option A: Replace existing preset", "选项 A：替换现有预设")
             },
         );
         let opt_a_sub = if is_def {
-            "默认布局不可覆盖，请在下方创建新预设。".to_owned()
+            crate::i18n_launcher::tr("Default layout cannot be overwritten. Please create a new preset below.", "默认布局不可覆盖，请在下方创建新预设。").to_owned()
         } else {
             format!(
                 "Update '{}' in controls/{}/",
@@ -6496,9 +6496,9 @@ pub fn draw_hud_editor(
             name_box[1],
             name_box[2],
             name_box[3],
-            "新预设名称",
+            crate::i18n_launcher::tr("NEW PRESET NAME", "新预设名称"),
             ed.save_name_input.as_str(),
-            "点击输入",
+            crate::i18n_launcher::tr("Tap to type", "点击输入"),
             name_focus,
         );
         ui.text_field(
@@ -6506,9 +6506,9 @@ pub fn draw_hud_editor(
             desc_box[1],
             desc_box[2],
             desc_box[3],
-            "描述",
+            crate::i18n_launcher::tr("DESCRIPTION", "描述"),
             ed.save_desc_input.as_str(),
-            "点击输入",
+            crate::i18n_launcher::tr("Tap to type", "点击输入"),
             !name_focus,
         );
         ui.hint_line(
@@ -6533,7 +6533,7 @@ pub fn draw_hud_editor(
             10.5,
             create_btn_r,
             accent_fg,
-            "Create New Preset & Save",
+            crate::i18n_launcher::tr("Create New Preset & Save", "新建预设并保存"),
         );
 
         ui.finish();
@@ -6609,8 +6609,8 @@ pub fn draw_hud_editor(
         let ey = dy + 56.0;
         let ew = (dw - 28.0 - 8.0) * 0.5;
         for (i, (title, primary)) in [
-            ("Save Preset (Replace / Save As...)", true),
-            ("将画布重置为默认布局", false),
+            (crate::i18n_launcher::tr("Save Preset (Replace / Save As...)", "保存预设（替换 / 另存为...）"), true),
+            (crate::i18n_launcher::tr("Reset Canvas to Default Layout", "将画布重置为默认布局"), false),
         ]
         .into_iter()
         .enumerate()
@@ -6708,9 +6708,9 @@ pub fn draw_hud_editor(
             (area_lbl, true),
             (
                 if tc.settings.snap_to_grid {
-                    "Grid Snap: ON"
+                    crate::i18n_launcher::tr("Grid Snap: ON", "网格吸附：开")
                 } else {
-                    "Grid Snap: OFF"
+                    crate::i18n_launcher::tr("Grid Snap: OFF", "网格吸附：关")
                 },
                 tc.settings.snap_to_grid,
             ),
@@ -7100,7 +7100,7 @@ pub fn touch_hud_editor(
             if inside([dx + 14.0, dy + 38.0, dw - 28.0, 44.0]) {
                 if is_def {
                     ed.status_msg = Some(
-                        "默认预设受保护且无法替换，请在下方创建新预设。"
+                        crate::i18n_launcher::tr("Default preset is protected and cannot be replaced. Create a new preset below.", "默认预设受保护且无法替换，请在下方创建新预设。")
                             .into(),
                     );
                     tc.clicked = true;
@@ -7174,7 +7174,7 @@ pub fn touch_hud_editor(
                     if inside([dx + 16.0, dy + 138.0, dw - 32.0, 34.0]) {
                         ed.keyboard_request = true;
                         ed.status_msg =
-                            Some("按键盘上的任意键将其绑定到此键位。".into());
+                            Some(crate::i18n_launcher::tr("Press any key on your keyboard to bind it to this slot.", "按键盘上的任意键将其绑定到此键位。").into());
                         tc.clicked = true;
                         return false;
                     }
@@ -7562,7 +7562,7 @@ pub fn touch_hud_editor(
                             tc.settings.apply_visibility_preset_all();
                             let _ = tc.settings.save();
                             ed.status_msg =
-                                Some("已将预设可见性应用到所有按键。".into());
+                                Some(crate::i18n_launcher::tr("Applied preset visibility to all controls.", "已将预设可见性应用到所有按键。").into());
                             tc.clicked = true;
                             return false;
                         }
@@ -7906,7 +7906,7 @@ pub fn touch_hud_editor(
                         push_undo_snapshot(&mut ed, &tc.settings);
                         tc.settings.apply_visibility_preset_all();
                         let _ = tc.settings.save();
-                        ed.status_msg = Some("已将预设可见性应用到所有按键。".into());
+                        ed.status_msg = Some(crate::i18n_launcher::tr("Applied preset visibility to all controls.", "已将预设可见性应用到所有按键。").into());
                         tc.clicked = true;
                         return false;
                     }
@@ -8053,7 +8053,7 @@ pub fn touch_hud_editor(
                                 tc.settings = prev;
                                 clamp_editor_custom_selection(&mut ed, &tc.settings);
                                 let _ = tc.settings.save();
-                                ed.status_msg = Some("已撤销上次更改。".into());
+                                ed.status_msg = Some(crate::i18n_launcher::tr("Undid last change.", "已撤销上次更改。").into());
                             }
                         }
                         1 => {
@@ -8063,7 +8063,7 @@ pub fn touch_hud_editor(
                                 tc.settings = next;
                                 clamp_editor_custom_selection(&mut ed, &tc.settings);
                                 let _ = tc.settings.save();
-                                ed.status_msg = Some("已重做更改。".into());
+                                ed.status_msg = Some(crate::i18n_launcher::tr("Redid change.", "已重做更改。").into());
                             }
                         }
                         2 => {

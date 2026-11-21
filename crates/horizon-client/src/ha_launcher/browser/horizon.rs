@@ -230,7 +230,7 @@ fn kind_of(kind: &index::Kind) -> Option<Kind> {
 /// Where the registry's mod policy is: who owns and answers for a project, takedowns.
 pub const POLICY: &str = "https://playhorizon.dev/mods/policy";
 
-/// Whether the Horizon project made `p` (the mod policy's "官方": author Horizon, source in
+/// Whether the Horizon project made `p` (the mod policy's crate::i18n_launcher::tr("Official", "官方"): author Horizon, source in
 /// the horizon-rust organisation).
 pub fn official(p: &index::Project) -> bool {
     p.authors == ["Horizon"] && p.source.starts_with("https://github.com/horizon-rust/")
@@ -247,7 +247,7 @@ pub fn trust_and_capabilities(id: &str) -> Vec<String> {
         return Vec::new();
     };
     let mut lines = vec![if official(p) {
-        "由 Horizon 制作".to_owned()
+        crate::i18n_launcher::tr("Made by Horizon", "由 Horizon 制作").to_owned()
     } else {
         format!(
             "Made by {}. Not made or endorsed by the Horizon project ({POLICY})",
@@ -255,12 +255,12 @@ pub fn trust_and_capabilities(id: &str) -> Vec<String> {
         )
     }];
     lines.push(match &p.key {
-        Some(_) => "Signed by its author: the launcher checks the signature".to_owned(),
+        Some(_) => crate::i18n_launcher::tr("Signed by its author: the launcher checks the signature", "由作者签名：启动器会检查签名").to_owned(),
         None => "Unsigned: the launcher checks its checksum only".to_owned(),
     });
     if p.kind == index::Kind::NativeMod {
         lines.push(
-            "Native code: it is compiled into the game and runs with full access to your computer. Its source was reviewed before it was listed".into(),
+            crate::i18n_launcher::tr("Native code: it is compiled into the game and runs with full access to your computer. Its source was reviewed before it was listed", "原生代码：它被编译进游戏，并以对你设备的完整访问权限运行。其源码在收录前已经过审核").into(),
         );
         if let Some(v) = p.versions.first() {
             let pin = v.api.split('/').nth(1).unwrap_or_default();
@@ -277,7 +277,7 @@ pub fn trust_and_capabilities(id: &str) -> Vec<String> {
                 .map(|c| format!("May {}", c.describe())),
         );
         if v.capabilities.is_empty() {
-            lines.push("仅请求其自身日志".into());
+            lines.push(crate::i18n_launcher::tr("Asks for nothing beyond its own log", "仅请求其自身日志").into());
         }
     }
     lines
@@ -459,15 +459,15 @@ impl Source for Registry {
             body,
             links: [
                 Link {
-                    label: "来源".into(),
+                    label: crate::i18n_launcher::tr("Source", "来源").into(),
                     url: p.source.clone(),
                 },
                 Link {
-                    label: "页面".into(),
+                    label: crate::i18n_launcher::tr("Page", "页面").into(),
                     url: project.page.clone(),
                 },
                 Link {
-                    label: "报告".into(),
+                    label: crate::i18n_launcher::tr("Report", "报告").into(),
                     url: format!("{REPORT}&title={}", p.id),
                 },
             ]
@@ -523,8 +523,8 @@ fn local_path(path: &str) -> &str {
 /// What the registry adds to an installed entry.
 fn trust_label(trust: Trust) -> &'static str {
     match trust {
-        Trust::Verified => "已认证",
-        Trust::Unsigned => "未签名",
+        Trust::Verified => crate::i18n_launcher::tr("Verified", "已认证"),
+        Trust::Unsigned => crate::i18n_launcher::tr("Unsigned", "未签名"),
     }
 }
 
@@ -535,7 +535,7 @@ fn relative(kind: Kind, id: &str, file_name: &str) -> Result<String, String> {
         Kind::ResourcePack => Ok(format!("resourcepacks/{file_name}")),
         Kind::Shader => Ok(format!("shaderpacks/{file_name}")),
         Kind::Modpack => Err("A modpack installs as its own profile (pack::install).".into()),
-        Kind::DataPack => Err("Horizon 的注册表中没有数据包。".into()),
+        Kind::DataPack => Err(crate::i18n_launcher::tr("Horizon's registry has no data packs.", "Horizon 的注册表中没有数据包。").into()),
     }
 }
 

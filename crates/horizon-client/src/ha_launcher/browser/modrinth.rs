@@ -121,7 +121,7 @@ fn parse_hit_as(hit: &Value, kind: Kind) -> Option<Project> {
 /// its native-only shader policy; Android labels this catalog experimental.
 pub fn search_shader_packs(query: &Query) -> Result<Vec<Project>, String> {
     if query.kind != Kind::Shader {
-        return Err("预期为光影搜索".into());
+        return Err(crate::i18n_launcher::tr("Expected a shader search", "预期为光影搜索").into());
     }
     let found = get(&search_url(query))?;
     Ok(shader_hits(&found))
@@ -294,7 +294,7 @@ fn get(url: &str) -> Result<Value, String> {
         .call()
         .map_err(|e| match e {
             ureq::Error::Status(429, _) => {
-                "Modrinth asks to slow down: try again in a minute.".into()
+                crate::i18n_launcher::tr("Modrinth asks to slow down: try again in a minute.", "Modrinth 请求放缓请求：请稍后再试。").into()
             }
             ureq::Error::Status(code, _) => format!("Modrinth 返回 {code}。"),
             ureq::Error::Transport(t) => format!("无法连接 Modrinth：{t}"),
@@ -322,7 +322,7 @@ mod shader_tests {
     #[test]
     fn opt_in_shader_search_does_not_change_the_default_source_policy() {
         let hit = serde_json::json!({"project_type":"shader", "project_id":"test",
-            "slug":"test-shader", "title":"Test shader", "versions":["26.3"]});
+            "slug":"test-shader", "title":crate::i18n_launcher::tr("Test shader", "测试着色器"), "versions":["26.3"]});
         assert!(parse_hit(&hit).is_none());
         let hits = shader_hits(
             &serde_json::json!({"hits":[hit,{"project_type":"mod","project_id":"not-a-shader"}]}),

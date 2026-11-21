@@ -49,7 +49,7 @@ impl Launcher {
                 let current = option.value(&c.game_settings(&self.home));
                 (
                     option.name(),
-                    "已为所选游戏实例保存。",
+                    crate::i18n_launcher::tr("Saved for the selected game instance.", "已为所选游戏实例保存。"),
                     (0..=option.max())
                         .map(|value| (
                             option.choice_name(value).into(),
@@ -61,7 +61,7 @@ impl Launcher {
                 )
             }
             Kind::CacheBudget => (
-                "可复用内存缓存",
+                crate::i18n_launcher::tr("Reusable RAM cache", "可复用内存缓存"),
                 "Decoded sounds (80%) and empty mesh buffers (20%). Recreated at the same quality. Smaller budgets can increase CPU work. Not total RAM/VRAM. Applies on next Play.",
                 [0, 16, 32, 64, 128, 256]
                     .into_iter()
@@ -80,13 +80,13 @@ impl Launcher {
                     .collect(),
             ),
             Kind::WorkerLimit => (
-                "区块工作线程上限",
-                "Ceiling for generation and meshing workers, not all app threads. Lower values can reduce CPU contention but slow loading. Applies on next Play.",
+                crate::i18n_launcher::tr("Chunk worker limit", "区块工作线程上限"),
+                crate::i18n_launcher::tr("Ceiling for generation and meshing workers, not all app threads. Lower values can reduce CPU contention but slow loading. Applies on next Play.", "地形生成与网格化工作线程的上限，并非全部应用线程。降低数值可减少 CPU 争用但会拖慢加载。下次启动时生效。"),
                 (0..=64u32)
                     .map(|limit| {
                         (
                             if limit == 0 {
-                                "无额外限制".into()
+                                crate::i18n_launcher::tr("No additional limit", "无额外限制").into()
                             } else {
                                 format!("{limit} worker(s)")
                             },
@@ -98,14 +98,14 @@ impl Launcher {
                     .collect(),
             ),
             Kind::DisplayHz => (
-                "显示刷新率",
-                "An Android display preference, not a game FPS cap. Unsupported rates may be ignored.",
+                crate::i18n_launcher::tr("Display refresh rate", "显示刷新率"),
+                crate::i18n_launcher::tr("An Android display preference, not a game FPS cap. Unsupported rates may be ignored.", "这是 Android 的显示刷新率偏好，并非游戏 FPS 上限。不支持的刷新率可能被忽略。"),
                 crate::ha_launcher::device_preferences::DISPLAY_RATES
                     .into_iter()
                     .map(|hz| {
                         (
                             if hz == 0 {
-                                "系统默认".into()
+                                crate::i18n_launcher::tr("System default", "系统默认").into()
                             } else {
                                 format!("{hz} Hz")
                             },
@@ -124,7 +124,7 @@ impl Launcher {
                         (
                             format!("{percent}%"),
                             if percent == 100 {
-                                "原生分辨率".into()
+                                crate::i18n_launcher::tr("Native resolution", "原生分辨率").into()
                             } else if percent > 100 {
                                 "Higher 3D rendering resolution".into()
                             } else {
@@ -136,20 +136,20 @@ impl Launcher {
                     })
                     .collect();
                 choices.push((
-                    "自定义百分比…".into(),
+                    crate::i18n_launcher::tr("Custom percentage...", "自定义百分比…").into(),
                     "Enter a value from 25 to 200".into(),
                     Action::Field("render_scale"),
                     false,
                 ));
                 (
-                    "客户端分辨率",
-                    "小屏保持可用的菜单尺寸。",
+                    crate::i18n_launcher::tr("Client resolution", "客户端分辨率"),
+                    crate::i18n_launcher::tr("Small screens retain a usable menu size.", "小屏保持可用的菜单尺寸。"),
                     choices,
                 )
             }
             Kind::InputHost => (
-                "输入模式",
-                "鼠标模式使用实体键盘，触摸模式保留安卓键盘。",
+                crate::i18n_launcher::tr("Input mode", "输入模式"),
+                crate::i18n_launcher::tr("Mouse mode uses a physical keyboard. Touch mode keeps the Android keyboard.", "鼠标模式使用实体键盘，触摸模式保留安卓键盘。"),
                 crate::ha_launcher::catalog::InputHost::ALL
                     .into_iter()
                     .map(|mode| {
@@ -163,24 +163,24 @@ impl Launcher {
                     .collect(),
             ),
             Kind::Renderer => (
-                "渲染模式",
-                "使用系统 GPU 驱动，将在下次启动游戏时生效。",
+                crate::i18n_launcher::tr("Rendering mode", "渲染模式"),
+                crate::i18n_launcher::tr("Uses the system GPU driver. Applies on the next game launch.", "使用系统 GPU 驱动，将在下次启动游戏时生效。"),
                 vec![
                     (
-                        "OpenGL ES / 实验性".into(),
+                        crate::i18n_launcher::tr("OpenGL ES / experimental", "OpenGL ES / 实验性").into(),
                         "For older GPUs. Requires ES 3.0+ and sufficient driver limits.".into(),
                         Action::ChooseRenderer(RendererMode::OpenGl),
                         c.renderer == RendererMode::OpenGl,
                     ),
                     (
-                        "Vulkan / GPU 批处理".into(),
-                        "优化的 Vulkan 管线，按页批处理绘制并高速流式加载区块。".into(),
+                        crate::i18n_launcher::tr("Vulkan / GPU batching", "Vulkan / GPU 批处理").into(),
+                        crate::i18n_launcher::tr("Optimized Vulkan pipeline with per-page draw batching and high-throughput chunk streaming.", "优化的 Vulkan 管线，按页批处理绘制并高速流式加载区块。").into(),
                         Action::ChooseRenderer(RendererMode::Vulkan),
                         c.renderer == RendererMode::Vulkan,
                     ),
                     (
-                        "Vulkan / 兼容".into(),
-                        "标准 Vulkan 渲染路径，按区域直接绘制。"
+                        crate::i18n_launcher::tr("Vulkan / compatibility", "Vulkan / 兼容").into(),
+                        crate::i18n_launcher::tr("Standard Vulkan rendering path with direct per-section draws.", "标准 Vulkan 渲染路径，按区域直接绘制。")
                             .into(),
                         Action::ChooseRenderer(RendererMode::VulkanCompatibility),
                         c.renderer == RendererMode::VulkanCompatibility,
@@ -218,9 +218,9 @@ impl Launcher {
                             // As the Play page counts them: Profile 1 is the game folder (0).
                             format!("Profile {}", id + 1),
                             if id == 0 {
-                                "默认档案".into()
+                                crate::i18n_launcher::tr("Default profile", "默认档案").into()
                             } else {
-                                "Separate saves, mods and packs".into()
+                                crate::i18n_launcher::tr("Separate saves, mods and packs", "独立的存档、模组与资源包").into()
                             },
                             Action::ChooseProfile(id),
                             id == c.profile,
@@ -229,34 +229,34 @@ impl Launcher {
                     .collect();
                 if let Some(id) = next {
                     choices.push((
-                        "新建档案".into(),
+                        crate::i18n_launcher::tr("Create profile", "新建档案").into(),
                         format!("Create Profile {}", id + 1),
                         Action::ChooseProfile(id),
                         false,
                     ));
                 }
                 (
-                    "选择档案",
-                    "每个档案拥有独立的游戏设置与存档。",
+                    crate::i18n_launcher::tr("Choose profile", "选择档案"),
+                    crate::i18n_launcher::tr("Each profile keeps its own game settings and saves.", "每个档案拥有独立的游戏设置与存档。"),
                     choices,
                 )
             }
             Kind::UiScale => (
-                "启动器界面缩放",
-                "让启动器适配手机 DPI。若触摸键和文字感觉太小或太大，可调大或调小。",
+                crate::i18n_launcher::tr("Launcher UI scale", "启动器界面缩放"),
+                crate::i18n_launcher::tr("Adapts the launcher to your phone's DPI. Increase or decrease if touch controls and text feel too small or too large.", "让启动器适配手机 DPI。若触摸键和文字感觉太小或太大，可调大或调小。"),
                 [
                     (
                         0u32,
                         "Auto (Phone DPI)",
-                        "自动匹配显示器的 DPI 密度",
+                        crate::i18n_launcher::tr("Automatically matches your display's DPI density", "自动匹配显示器的 DPI 密度"),
                     ),
-                    (85, "85% (Compact)", "屏幕上可容纳更多行"),
-                    (100, "100% (Default DPI)", "标准手机 DPI 缩放"),
-                    (115, "115% (Large)", "Larger buttons, cards and text"),
+                    (85, "85% (Compact)", crate::i18n_launcher::tr("Fits more rows on screen", "屏幕上可容纳更多行")),
+                    (100, "100% (Default DPI)", crate::i18n_launcher::tr("Standard phone DPI scaling", "标准手机 DPI 缩放")),
+                    (115, "115% (Large)", crate::i18n_launcher::tr("Larger buttons, cards and text", "更大的按钮、卡片与文字")),
                     (
                         130,
                         "130% (Extra Large)",
-                        "高 DPI 手机最大触摸舒适度",
+                        crate::i18n_launcher::tr("Maximum touch comfort on high-DPI phones", "高 DPI 手机最大触摸舒适度"),
                     ),
                 ]
                 .into_iter()
@@ -297,17 +297,17 @@ impl Launcher {
                     .collect();
                 (
                     match style {
-                        crate::ha_launcher::client::touch::ControlStyle::Mcpe => "MCPE 按键预设",
+                        crate::ha_launcher::client::touch::ControlStyle::Mcpe => crate::i18n_launcher::tr("MCPE Control Presets", "MCPE 按键预设"),
                         crate::ha_launcher::client::touch::ControlStyle::GoyControl => {
-                            "GoyControl 按键预设"
+                            crate::i18n_launcher::tr("GoyControl Control Presets", "GoyControl 按键预设")
                         }
                     },
                     match style {
                         crate::ha_launcher::client::touch::ControlStyle::Mcpe => {
-                            "独立的 MCPE 预设存储于 controls/mcpe/，默认预设受保护。"
+                            crate::i18n_launcher::tr("Independent MCPE presets stored in controls/mcpe/. Default is protected.", "独立的 MCPE 预设存储于 controls/mcpe/，默认预设受保护。")
                         }
                         crate::ha_launcher::client::touch::ControlStyle::GoyControl => {
-                            "独立的 GoyControl 预设存储于 controls/goycontrol/，默认预设受保护。"
+                            crate::i18n_launcher::tr("Independent GoyControl presets stored in controls/goycontrol/. Default is protected.", "独立的 GoyControl 预设存储于 controls/goycontrol/，默认预设受保护。")
                         }
                     },
                     choices,
@@ -328,16 +328,16 @@ impl Chooser {
     pub(super) fn confirm_delete(name: String) -> Self {
         Self {
             title: "Remove add-on?",
-            help: "仅从此档案中删除所选文件，此操作不可撤销。",
+            help: crate::i18n_launcher::tr("Deletes only the selected file from this profile. This cannot be undone.", "仅从此档案中删除所选文件，此操作不可撤销。"),
             device: Some(name),
             choices: vec![
                 (
-                    "移除".into(),
+                    crate::i18n_launcher::tr("Remove", "移除").into(),
                     String::new(),
                     Action::ConfirmDeleteLocal,
                     false,
                 ),
-                ("取消".into(), String::new(), Action::Dismiss, true),
+                (crate::i18n_launcher::tr("Cancel", "取消").into(), String::new(), Action::Dismiss, true),
             ],
             deletes: Vec::new(),
             scroll: 0.0,
@@ -348,18 +348,18 @@ impl Chooser {
     pub(super) fn confirm_delete_profile(id: u32) -> Self {
         Self {
             title: "Delete profile?",
-            help: "Deletes its worlds, mods, packs and settings. This cannot be undone.",
+            help: crate::i18n_launcher::tr("Deletes its worlds, mods, packs and settings. This cannot be undone.", "将删除其世界、模组、资源包与设置。此操作无法撤销。"),
             device: Some(format!("Profile {}", id + 1)),
             choices: vec![
                 (
-                    "删除".into(),
+                    crate::i18n_launcher::tr("Delete", "删除").into(),
                     format!("Delete Profile {} for good", id + 1),
                     Action::ConfirmDeleteProfile(id),
                     false,
                 ),
                 (
-                    "取消".into(),
-                    "返回档案".into(),
+                    crate::i18n_launcher::tr("Cancel", "取消").into(),
+                    crate::i18n_launcher::tr("Back to the profiles", "返回档案").into(),
                     Action::Profile,
                     true,
                 ),
@@ -494,7 +494,7 @@ impl Chooser {
                 let r = [w - 48.0 - 96.0, y + 17.0, 96.0, 40.0];
                 ui.rounded(r[0], r[1], r[2], r[3], 10.0, with_alpha(theme.danger, 0.16));
                 ui.border(r[0], r[1], r[2], r[3], 10.0, theme.danger);
-                ui.centered_fit(Face::Medium, 14.0, r, theme.danger, "删除");
+                ui.centered_fit(Face::Medium, 14.0, r, theme.danger, crate::i18n_launcher::tr("Delete", "删除"));
                 if let Some(c) = ui.clip_rect(r) {
                     targets.push((c, delete));
                 }
@@ -505,7 +505,7 @@ impl Chooser {
             ui,
             targets,
             [32.0, h - 74.0, 160.0, 44.0],
-            "取消",
+            crate::i18n_launcher::tr("Cancel", "取消"),
             Action::Dismiss,
             false,
             10.0,

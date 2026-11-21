@@ -39,7 +39,7 @@ impl Settings {
 
     pub fn display_label(self) -> String {
         if self.display_hz == 0 {
-            "系统默认".into()
+            crate::i18n_launcher::tr("System default", "系统默认").into()
         } else {
             format!("{} Hz (request)", self.display_hz)
         }

@@ -55,6 +55,7 @@ pub mod android_control_keyboard;
 pub mod android_control_text;
 pub mod android_control_theme;
 pub mod android_control_ui;
+pub mod i18n_launcher;
 pub mod beehive;
 pub mod benchmark;
 pub mod block_entity_item;

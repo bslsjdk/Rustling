@@ -53,6 +53,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.security.Key;
 import java.security.KeyStore;
@@ -136,6 +137,9 @@ public class StarlingActivity extends NativeActivity {
         System.loadLibrary("horizon_android");
     }
 
+    /** The device language, for the launcher's own hardcoded strings (android_lib.rs). */
+    private static native void onSystemLanguage(String language);
+
     /** The keyboard's height in window pixels, 0 when it is hidden (android_lib.rs). */
     private static native void onImeHeight(int pixels);
 
@@ -202,6 +206,8 @@ public class StarlingActivity extends NativeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         StartupRecovery.begin(this);
         loadGame();
+        // The launcher's own strings follow the device language (android_lib.rs).
+        onSystemLanguage(Locale.getDefault().getLanguage());
         // Before super.onCreate starts the game's thread, which reads it first thing.
         onStorage(sharedFolder(this));
         super.onCreate(savedInstanceState);
@@ -617,16 +623,15 @@ public class StarlingActivity extends NativeActivity {
             return;
         }
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("A native mod needs a permission")
-                .setMessage(said + "\n\nAndroid asks you next. You can change it later in the "
-                        + "app's settings.")
-                .setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                .setTitle(R.string.mod_permission_title)
+                .setMessage(said + "\n\n" + getString(R.string.mod_permission_message))
+                .setPositiveButton(R.string.mod_permission_continue, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         requestPermissions(missing.toArray(new String[0]), MOD_PERMISSIONS);
                     }
                 })
-                .setNegativeButton("Not now", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.mod_permission_not_now, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         NativeMods.declinePermissions(modBuild);
@@ -672,7 +677,7 @@ public class StarlingActivity extends NativeActivity {
         frame.setPadding(side, 0, side, 0);
         frame.addView(address);
 
-        String warning = "WE TAKE NO RESPONSIBILITY FOR OTHER BUILD SERVERS";
+        String warning = getString(R.string.build_server_warning_title);
         SpannableStringBuilder message = new SpannableStringBuilder(warning);
         message.setSpan(new ForegroundColorSpan(0xFFFF5252), 0, warning.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -680,15 +685,13 @@ public class StarlingActivity extends NativeActivity {
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         message.setSpan(new StyleSpan(Typeface.BOLD), 0, warning.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        message.append("\n\nThe game another server sends back runs inside Starling with full "
-                + "access, including your worlds and your signed-in account. Only use a server you "
-                + "run yourself or fully trust. Your native mods are the only files sent to it.");
+        message.append("\n\n").append(getString(R.string.build_server_warning_body));
 
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                .setTitle("Build server")
+                .setTitle(R.string.build_server_title)
                 .setMessage(message)
                 .setView(frame)
-                .setPositiveButton("Use this server", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.build_server_use, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String typed = address.getText().toString();
@@ -696,18 +699,18 @@ public class StarlingActivity extends NativeActivity {
                             NativeMods.chooseBuildServer(StarlingActivity.this, typed);
                         } else {
                             Toast.makeText(StarlingActivity.this,
-                                    "That is not an https:// address. Nothing changed.",
+                                    getString(R.string.build_server_bad_address),
                                     Toast.LENGTH_LONG).show();
                         }
                     }
                 })
-                .setNeutralButton("Use Starling's", new DialogInterface.OnClickListener() {
+                .setNeutralButton(R.string.build_server_default, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         NativeMods.chooseBuildServer(StarlingActivity.this, null);
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 

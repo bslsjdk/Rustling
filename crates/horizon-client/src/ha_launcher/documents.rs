@@ -96,7 +96,7 @@ fn imported(text: impl Into<String>, kind: Kind) {
 pub fn poll() -> Option<Notice> {
     if crate::ha_launcher::document_provider::take_changes() {
         return Some(Notice {
-            text: "内容文件已更改，请重载资源包以应用。".into(),
+            text: crate::i18n_launcher::tr("Content files changed. Reload packs to apply.", "内容文件已更改，请重载资源包以应用。").into(),
             changed: true,
             kind: None,
         });
@@ -109,12 +109,12 @@ pub fn poll() -> Option<Notice> {
 }
 pub fn begin(kind: Kind, home: PathBuf) -> std::result::Result<(), String> {
     if busy() {
-        return Err("请先完成或取消当前导入".into());
+        return Err(crate::i18n_launcher::tr("Finish or cancel the current import first", "请先完成或取消当前导入").into());
     }
     CANCEL.store(false, Ordering::Relaxed);
     crate::ha_launcher::platform::hide();
     let cache = crate::ha_launcher::platform::cache_dir()
-        .ok_or("无法访问安卓导入缓存")?
+        .ok_or(crate::i18n_launcher::tr("Could not access the Android import cache", "无法访问安卓导入缓存"))?
         .join("content-imports");
     STATE.lock().unwrap_or_else(|e| e.into_inner()).request = Some(Request {
         kind,
@@ -124,8 +124,8 @@ pub fn begin(kind: Kind, home: PathBuf) -> std::result::Result<(), String> {
         cache,
     });
     if !crate::ha_launcher::native_ime::pick_document() {
-        picker_failed("安卓文档选择器不可用");
-        return Err("安卓文档选择器不可用".into());
+        picker_failed(crate::i18n_launcher::tr("Android document picker is unavailable", "安卓文档选择器不可用"));
+        return Err(crate::i18n_launcher::tr("Android document picker is unavailable", "安卓文档选择器不可用").into());
     }
     notice(format!("Choose a {} file", kind.label()), false);
     Ok(())
@@ -139,12 +139,12 @@ pub fn begin_appearance(
     kind: crate::ha_launcher::skins::library::Kind,
 ) -> std::result::Result<(), String> {
     if busy() {
-        return Err("请先完成或取消当前导入".into());
+        return Err(crate::i18n_launcher::tr("Finish or cancel the current import first", "请先完成或取消当前导入").into());
     }
     CANCEL.store(false, Ordering::Relaxed);
     crate::ha_launcher::platform::hide();
     let cache = crate::ha_launcher::platform::cache_dir()
-        .ok_or("无法访问安卓导入缓存")?
+        .ok_or(crate::i18n_launcher::tr("Could not access the Android import cache", "无法访问安卓导入缓存"))?
         .join("appearance-imports");
     STATE.lock().unwrap_or_else(|e| e.into_inner()).request = Some(Request {
         kind: Kind::Packs,
@@ -154,22 +154,22 @@ pub fn begin_appearance(
         cache,
     });
     if !crate::ha_launcher::native_ime::pick_document() {
-        picker_failed("安卓文档选择器不可用");
-        return Err("安卓文档选择器不可用".into());
+        picker_failed(crate::i18n_launcher::tr("Android document picker is unavailable", "安卓文档选择器不可用"));
+        return Err(crate::i18n_launcher::tr("Android document picker is unavailable", "安卓文档选择器不可用").into());
     }
-    notice("选择皮肤或披风 PNG", false);
+    notice(crate::i18n_launcher::tr("Choose a skin or cape PNG", "选择皮肤或披风 PNG"), false);
     Ok(())
 }
 
 /// Opens Android's `ACTION_OPEN_DOCUMENT` picker to import a file directly into `target_dir`.
 pub fn begin_into_dir(target_dir: PathBuf) -> std::result::Result<(), String> {
     if busy() {
-        return Err("请先完成或取消当前导入".into());
+        return Err(crate::i18n_launcher::tr("Finish or cancel the current import first", "请先完成或取消当前导入").into());
     }
     CANCEL.store(false, Ordering::Relaxed);
     crate::ha_launcher::platform::hide();
     let cache = crate::ha_launcher::platform::cache_dir()
-        .ok_or("无法访问安卓导入缓存")?
+        .ok_or(crate::i18n_launcher::tr("Could not access the Android import cache", "无法访问安卓导入缓存"))?
         .join("file-manager-imports");
     STATE.lock().unwrap_or_else(|e| e.into_inner()).request = Some(Request {
         kind: Kind::Packs,
@@ -179,10 +179,10 @@ pub fn begin_into_dir(target_dir: PathBuf) -> std::result::Result<(), String> {
         cache,
     });
     if !crate::ha_launcher::native_ime::pick_document() {
-        picker_failed("安卓文档选择器不可用");
-        return Err("安卓文档选择器不可用".into());
+        picker_failed(crate::i18n_launcher::tr("Android document picker is unavailable", "安卓文档选择器不可用"));
+        return Err(crate::i18n_launcher::tr("Android document picker is unavailable", "安卓文档选择器不可用").into());
     }
-    notice("选择要导入此文件夹的文件", false);
+    notice(crate::i18n_launcher::tr("Choose a file to import into this folder", "选择要导入此文件夹的文件"), false);
     Ok(())
 }
 
@@ -194,12 +194,12 @@ pub fn export_file(
 ) -> std::result::Result<String, String> {
     let meta = std::fs::symlink_metadata(file_path).map_err(|e| e.to_string())?;
     if meta.file_type().is_symlink() || !meta.is_file() {
-        return Err("只能导出普通文件。".into());
+        return Err(crate::i18n_launcher::tr("Only regular files can be exported.", "只能导出普通文件。").into());
     }
     let file_name = file_path
         .file_name()
         .and_then(|s| s.to_str())
-        .ok_or("无效文件名")?;
+        .ok_or(crate::i18n_launcher::tr("Invalid filename", "无效文件名"))?;
     if file_name.to_ascii_lowercase().ends_with(".png") {
         let _ = crate::ha_launcher::gallery::save(file_path);
         return Ok(format!(
@@ -252,11 +252,11 @@ pub fn document_result(
         .request
         .take();
     let Some(pending) = pending else {
-        notice("导入中断，请重新选择文件。", false);
+        notice(crate::i18n_launcher::tr("Import interrupted. Choose the file again.", "导入中断，请重新选择文件。"), false);
         return;
     };
     if result != -1 || uri.is_null() {
-        notice("已取消导入", false);
+        notice(crate::i18n_launcher::tr("Import cancelled", "已取消导入"), false);
         return;
     }
     let setup = (|| -> jni::errors::Result<_> {
@@ -266,16 +266,16 @@ pub fn document_result(
     })();
     let Ok((vm, activity, uri)) = setup else {
         let _ = env.exception_clear();
-        notice("无法读取所选文档", false);
+        notice(crate::i18n_launcher::tr("Could not read the selected document", "无法读取所选文档"), false);
         return;
     };
     if !uri.starts_with("content://") || uri.len() > 8192 {
-        notice("不支持的文档 URI", false);
+        notice(crate::i18n_launcher::tr("Unsupported document URI", "不支持的文档 URI"), false);
         return;
     }
     STATE.lock().unwrap_or_else(|e| e.into_inner()).working = true;
     let spawned = std::thread::Builder::new()
-        .name("内容导入".into())
+        .name(crate::i18n_launcher::tr("Content import", "内容导入").into())
         .spawn(move || {
             let result = (|| -> Result<()> {
                 let mut env = vm.attach_current_thread()?;
@@ -314,14 +314,14 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
             .file_type()
             .is_symlink()
         {
-            return Err("拒绝重定向的目标文件夹".into());
+            return Err(crate::i18n_launcher::tr("Refusing a redirected destination folder", "拒绝重定向的目标文件夹").into());
         }
         std::fs::create_dir_all(&request.cache)?;
         if std::fs::symlink_metadata(&request.cache)?
             .file_type()
             .is_symlink()
         {
-            return Err("拒绝重定向的导入缓存".into());
+            return Err(crate::i18n_launcher::tr("Refusing a redirected import cache", "拒绝重定向的导入缓存").into());
         }
         let stamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos();
         let staged = request.cache.join(format!(".import-fm-{stamp}.part"));
@@ -337,7 +337,7 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
             output.sync_all()?;
             drop(output);
             if CANCEL.load(Ordering::Relaxed) {
-                return Err("已取消导入".into());
+                return Err(crate::i18n_launcher::tr("Import cancelled", "已取消导入").into());
             }
             let dest =
                 crate::ha_launcher::document_store::unique_destination_path(&target_dir, &name)?;
@@ -364,37 +364,37 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
     if let Some(kind) = request.appearance {
         use std::io::Read;
         if !name.to_ascii_lowercase().ends_with(".png") {
-            return Err("选择 PNG 皮肤或披风".into());
+            return Err(crate::i18n_launcher::tr("Choose a PNG skin or cape", "选择 PNG 皮肤或披风").into());
         }
         let mut bytes = Vec::new();
         input
             .take(crate::ha_launcher::skins::MAX_IMPORT_BYTES as u64 + 1)
             .read_to_end(&mut bytes)?;
         if CANCEL.load(Ordering::Relaxed) {
-            return Err("已取消导入".into());
+            return Err(crate::i18n_launcher::tr("Import cancelled", "已取消导入").into());
         }
         let mut library = crate::ha_launcher::skins::library::Library::load(&request.home)?;
         library.import(&request.home, &name, kind, &bytes)?;
         notice(
-            "PNG 已加入本地图库，选择它以在本地应用。",
+            crate::i18n_launcher::tr("PNG added to the local gallery. Select it to apply locally.", "PNG 已加入本地图库，选择它以在本地应用。"),
             false,
         );
         return Ok(());
     }
     if !content_files::plain_name(&name) || !request.kind.accepts(&name) {
-        return Err("所选文件扩展名与此文件夹不匹配".into());
+        return Err(crate::i18n_launcher::tr("Selected file has the wrong extension for this folder", "所选文件扩展名与此文件夹不匹配").into());
     }
     let dir = request.home.join(request.kind.folder());
     std::fs::create_dir_all(&dir)?;
     if std::fs::symlink_metadata(&dir)?.file_type().is_symlink() {
-        return Err("拒绝重定向的内容目录".into());
+        return Err(crate::i18n_launcher::tr("Refusing a redirected content directory", "拒绝重定向的内容目录").into());
     }
     std::fs::create_dir_all(&request.cache)?;
     if std::fs::symlink_metadata(&request.cache)?
         .file_type()
         .is_symlink()
     {
-        return Err("拒绝重定向的导入缓存".into());
+        return Err(crate::i18n_launcher::tr("Refusing a redirected import cache", "拒绝重定向的导入缓存").into());
     }
     for entry in std::fs::read_dir(&request.cache)?.flatten() {
         let name = entry.file_name().to_string_lossy().into_owned();
@@ -418,7 +418,7 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
         })?;
         output.sync_all()?;
         drop(output);
-        notice("正在检查压缩包…", false);
+        notice(crate::i18n_launcher::tr("Checking archive...", "正在检查压缩包…"), false);
         let native_shader = content_files::validate(&staged, request.kind, &name, || {
             CANCEL.load(Ordering::Relaxed)
         })?;
@@ -437,10 +437,10 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
             name
         };
         if !content_files::plain_name(&name) {
-            return Err("包 ID 或文件名无效".into());
+            return Err(crate::i18n_launcher::tr("Package has an invalid ID or filename", "包 ID 或文件名无效").into());
         }
         if CANCEL.load(Ordering::Relaxed) {
-            return Err("已取消导入".into());
+            return Err(crate::i18n_launcher::tr("Import cancelled", "已取消导入").into());
         }
         let target = dir.join(name);
         if target.exists() {
@@ -450,7 +450,7 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
                 target,
             });
             notice(
-                "File already exists: choose Keep both, Replace or Cancel",
+                crate::i18n_launcher::tr("File already exists: choose Keep both, Replace or Cancel", "文件已存在：请选择保留两者、替换或取消"),
                 false,
             );
         } else {
@@ -482,7 +482,7 @@ pub fn resolve(choice: Choice) {
     };
     if matches!(choice, Choice::Cancel) {
         let _ = std::fs::remove_file(c.staged);
-        notice("已取消导入", false);
+        notice(crate::i18n_launcher::tr("Import cancelled", "已取消导入"), false);
         return;
     }
     let result = (|| -> Result<()> {
@@ -490,7 +490,7 @@ pub fn resolve(choice: Choice) {
             && std::fs::symlink_metadata(&c.target)
                 .is_ok_and(|m| !m.is_file() || m.file_type().is_symlink())
         {
-            return Err("无法替换文件夹或符号链接".into());
+            return Err(crate::i18n_launcher::tr("Cannot replace a folder or symbolic link", "无法替换文件夹或符号链接").into());
         }
         if matches!(choice, Choice::KeepBoth) {
             if c.kind == Kind::Mods {
@@ -516,7 +516,7 @@ pub fn resolve(choice: Choice) {
             let dir = c
                 .target
                 .parent()
-                .ok_or("无效的内容文件夹")?
+                .ok_or(crate::i18n_launcher::tr("Invalid content folder", "无效的内容文件夹"))?
                 .to_owned();
             for i in 1..=10000 {
                 let candidate = dir.join(format!("{stem} ({i}).{ext}"));
@@ -525,7 +525,7 @@ pub fn resolve(choice: Choice) {
                     break;
                 }
                 if i == 10000 {
-                    return Err("文件名冲突过多".into());
+                    return Err(crate::i18n_launcher::tr("Too many filename conflicts", "文件名冲突过多").into());
                 }
             }
         }
@@ -534,7 +534,7 @@ pub fn resolve(choice: Choice) {
     })();
     match result {
         Ok(()) => imported(
-            "导入完成，请在“已安装”或游戏设置中启用。",
+            crate::i18n_launcher::tr("Import completed. Enable it in Installed or game settings.", "导入完成，请在“已安装”或游戏设置中启用。"),
             c.kind,
         ),
         Err(e) => {
@@ -549,7 +549,7 @@ pub fn cancel() {
     if conflict() {
         resolve(Choice::Cancel);
     } else {
-        notice("已取消导入", false);
+        notice(crate::i18n_launcher::tr("Import cancelled", "已取消导入"), false);
     }
 }
 pub fn tap(x: f32, y: f32) -> bool {
@@ -594,19 +594,19 @@ pub fn draw_ui(ui: &mut Ui<'_>) {
                 .to_string_lossy()
                 .into_owned(),
             if c.kind == Kind::Mods {
-                vec![("替换", Choice::Replace), ("取消", Choice::Cancel)]
+                vec![(crate::i18n_launcher::tr("Replace", "替换"), Choice::Replace), (crate::i18n_launcher::tr("Cancel", "取消"), Choice::Cancel)]
             } else {
                 vec![
-                    ("保留两者", Choice::KeepBoth),
-                    ("替换", Choice::Replace),
-                    ("取消", Choice::Cancel),
+                    (crate::i18n_launcher::tr("Keep both", "保留两者"), Choice::KeepBoth),
+                    (crate::i18n_launcher::tr("Replace", "替换"), Choice::Replace),
+                    (crate::i18n_launcher::tr("Cancel", "取消"), Choice::Cancel),
                 ]
             },
         )
     } else {
         (
             s.toast.as_ref().map(|v| v.0.clone()).unwrap_or_default(),
-            vec![("取消", Choice::Cancel)],
+            vec![(crate::i18n_launcher::tr("Cancel", "取消"), Choice::Cancel)],
         )
     };
     let w = 440.0f32.min(ui.w - 24.0);
@@ -627,9 +627,9 @@ pub fn draw_ui(ui: &mut Ui<'_>) {
         y + 12.0,
         color::TEXT,
         if s.conflict.is_some() {
-            "文件已存在"
+            crate::i18n_launcher::tr("File exists", "文件已存在")
         } else {
-            "正在导入文件"
+            crate::i18n_launcher::tr("Importing file", "正在导入文件")
         },
     );
     let name = ui.fit_text(Face::Regular, 16.0, &name, w - 24.0);

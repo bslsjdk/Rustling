@@ -1,5 +1,18 @@
 # Third-party notices
 
+## Noto Sans SC
+
+`crates/horizon-theme/fonts/Noto-{Regular,Medium,SemiBold}.ttf` are static
+instances at weights 400/500/600 baked from `NotoSansSC[wght].ttf` of
+[google/fonts](https://github.com/google/fonts) (`ofl/notosanssc`, commit
+`2fe1e8c6b137fb13041a7cfca6fdcd8a910ea4dc`, source SHA-256
+`a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da`) with
+`tools/bake_noto.py`. Copyright 2014-2021 Adobe, with Reserved Font Name
+"Source"; licensed under the SIL Open Font License 1.1, reproduced in
+`crates/horizon-theme/fonts/OFL-NotoSansSC.txt`. The baked instances are
+modified versions of that font under the OFL; the full 17 MB variable source is
+not distributed here.
+
 ## cap-std / cap-fs-ext
 
 `horizon-client` directly uses `cap-std` and `cap-fs-ext` 3.4.6 from

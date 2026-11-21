@@ -1,0 +1,23 @@
+<resources>
+    <string name="launcher_handing_file">Handing the file to Starling...</string>
+    <string name="launcher_restarting">Starting Starling again…</string>
+    <string name="launcher_subtitle">RUST EDITION  •  ANDROID LAUNCHER</string>
+    <string name="mod_permission_title">A native mod needs a permission</string>
+    <string name="mod_permission_message">Android asks you next. You can change it later in the app\'s settings.</string>
+    <string name="mod_permission_continue">Continue</string>
+    <string name="mod_permission_not_now">Not now</string>
+    <string name="build_server_warning_title">WE TAKE NO RESPONSIBILITY FOR OTHER BUILD SERVERS</string>
+    <string name="build_server_warning_body">The game another server sends back runs inside Starling with full access, including your worlds and your signed-in account. Only use a server you run yourself or fully trust. Your native mods are the only files sent to it.</string>
+    <string name="build_server_title">Build server</string>
+    <string name="build_server_use">Use this server</string>
+    <string name="build_server_default">Use Starling\'s</string>
+    <string name="build_server_bad_address">That is not an https:// address. Nothing changed.</string>
+    <string name="cancel">Cancel</string>
+    <string name="horizon_import_title">Bringing your worlds over from Horizon Android</string>
+    <string name="horizon_import_wrong_folder">That is not Horizon Android\'s folder: pick Horizon in the list of places</string>
+    <string name="horizon_import_read_failed">Could not read Horizon Android\'s files: close Horizon Android, then try again</string>
+    <string name="horizon_import_empty">Horizon Android has no worlds or resource packs there</string>
+    <string name="work_error_microsoft">Could not reach Microsoft</string>
+    <string name="work_notification_title">Starling is working</string>
+    <string name="work_notification_text">Starling at work</string>
+</resources>
