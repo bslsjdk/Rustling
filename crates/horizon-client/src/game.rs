@@ -11583,6 +11583,16 @@ pub(crate) fn run_with(
     let first_start = !options_txt.exists();
     #[allow(unused_mut)]
     let mut early_settings = Settings::load(&options_txt);
+    // Chinese-first distribution: on a Chinese device, default the game's text to Simplified
+    // Chinese unless the player picked a language in options.txt. The setup screen and the game
+    // both read this, so they follow the system instead of showing English.
+    #[cfg(target_os = "android")]
+    if horizon_client::i18n_launcher::is_chinese()
+        && (early_settings.language.is_empty() || early_settings.language == "en_us")
+    {
+        early_settings.language = "zh_cn".into();
+        let _ = early_settings.save(&options_txt);
+    }
     // A phone's first start: settings for what it can take, saved before anything reads them.
     #[cfg(target_os = "android")]
     if first_start && let Some(tier) = horizon_client::system_stats::Tier::here() {

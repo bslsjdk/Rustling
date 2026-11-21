@@ -21,6 +21,12 @@ pub fn is_chinese() -> bool {
     LANGUAGE.load(Ordering::Relaxed) == 1
 }
 
+/// The game-side `lang` code for the device language, so the setup screens (which
+/// use `horizon_client::lang`, not [`tr`]) follow the system too.
+pub fn system_lang_code() -> &'static str {
+    if is_chinese() { "zh_cn" } else { "en_us" }
+}
+
 /// The Chinese text on a Chinese system, the English original everywhere else.
 pub fn tr(english: &'static str, chinese: &'static str) -> &'static str {
     if is_chinese() { chinese } else { english }

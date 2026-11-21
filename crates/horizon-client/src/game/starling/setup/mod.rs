@@ -18,8 +18,12 @@ use horizon_client::{
     ui_theme::{Face, Ui, color},
 };
 use std::cell::Cell;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 use winit::event::{Touch, TouchPhase};
+
+/// The setup's language has been matched to the device once.
+static SETUP_LANG_SET: AtomicBool = AtomicBool::new(false);
 
 /// What the screen offers now.
 #[derive(Clone, Debug, PartialEq)]
@@ -589,6 +593,12 @@ impl Loading {
     /// Every frame on the setup: a saved sign-in renewed, the download after a sign-in, the
     /// preparing once the files are there, and the game loaded once they are prepared.
     pub(super) fn poll_setup(&mut self) {
+        // The setup's own words (title, buttons, notes) use the game's lang table. Match it to
+        // the device language once, since at this point the game's settings still default to en.
+        if !SETUP_LANG_SET.swap(true, Ordering::Relaxed) {
+            let code = horizon_client::i18n_launcher::system_lang_code();
+            horizon_client::lang::set(horizon_client::lang::Language::load(&[], code));
+        }
         self.setup.fishing.update(Instant::now());
         if self.setup.form.as_mut().is_some_and(Form::poll) {
             self.setup_action(Action::SubmitForm);
