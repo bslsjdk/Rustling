@@ -258,7 +258,7 @@ fn run(resources: &Path, local: Option<&Path>, started: Instant) -> Result<(), S
         &horizon_prepare::Options {
             root: kit.clone(),
             import: true,
-            minecraft_dir: Some(minecraft_dir),
+            minecraft_dir: Some(minecraft_dir.clone()),
             server_jar: Some(server_jar),
             java_home: None,
             inputs,
