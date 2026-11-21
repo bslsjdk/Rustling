@@ -9,6 +9,7 @@ use crate::{
 use std::{
     cell::Cell,
     collections::BTreeMap,
+    sync::OnceLock,
     time::{Duration, Instant},
 };
 use winit::{event::TouchPhase, keyboard::KeyCode};
@@ -370,7 +371,9 @@ pub enum Action {
     More,
 }
 
-const KEYS: [(&str, KeyCode); 28] = [
+static KEYS: OnceLock<Vec<(&'static str, KeyCode)>> = OnceLock::new();
+fn keys() -> &'static [(&'static str, KeyCode)] {
+    KEYS.get_or_init(|| vec![
     ("F1", KeyCode::F1),
     ("F2", KeyCode::F2),
     ("F3", KeyCode::F3),
@@ -399,7 +402,8 @@ const KEYS: [(&str, KeyCode); 28] = [
     ("F3+G", KeyCode::KeyG),
     ("F3+A", KeyCode::KeyA),
     ("F3+T", KeyCode::KeyT),
-];
+    ])
+}
 
 fn mouse_button_rects(w: f32, h: f32) -> [([f32; 4], bool); 2] {
     [
@@ -948,7 +952,7 @@ impl TouchUi {
                 return None;
             }
             let i = (y / 24.0) as usize * 4 + (x / 50.0) as usize;
-            return KEYS.get(i).map(|(_, k)| match i {
+            return keys().get(i).map(|(_, k)| match i {
                 23 => Action::Pick,
                 24.. => Action::DebugCombo(*k),
                 _ => Action::Key(*k),
@@ -1029,7 +1033,7 @@ impl TouchUi {
             195.0 + self.utility_offset_y,
             48.0,
         );
-        for (i, (label, _)) in KEYS.iter().enumerate() {
+        for (i, (label, _)) in keys().iter().enumerate() {
             button(
                 b,
                 a,
@@ -1263,7 +1267,9 @@ const KB_ROWS: &[&[(&str, &str, f32)]] = &[
     ],
 ];
 
-const MOUSE_AND_ACTION_ITEMS: &[(&str, &str)] = &[
+static MOUSE_AND_ACTION_ITEMS: OnceLock<Vec<(&'static str, &'static str)>> = OnceLock::new();
+fn mouse_and_action_items() -> &'static [(&'static str, &'static str)] {
+    MOUSE_AND_ACTION_ITEMS.get_or_init(|| vec![
     (crate::i18n_launcher::tr("Left Click (LMB)", "左键 (LMB)"), "key.mouse.left"),
     (crate::i18n_launcher::tr("Right Click (RMB)", "右键 (RMB)"), "key.mouse.right"),
     (crate::i18n_launcher::tr("Middle Click (MMB)", "中键 (MMB)"), "key.mouse.middle"),
@@ -1290,7 +1296,8 @@ const MOUSE_AND_ACTION_ITEMS: &[(&str, &str)] = &[
     ("Action: Debug Info (F3)", "action:key.debug.overlay"),
     ("Action: Perspective (F5)", "action:key.togglePerspective"),
     (crate::i18n_launcher::tr("Action: Advancements (L)", "动作：进度 (L)"), "action:key.advancements"),
-];
+    ])
+}
 
 fn draw_input_picker_modal(
     ui: &mut crate::android_control_theme::Ui<'_>,
@@ -1526,14 +1533,14 @@ fn draw_input_picker_modal(
             ui.centered_fit(Face::SemiBold, 10.0, b_back, text_c, crate::i18n_launcher::tr("Back", "返回"));
 
             let cols = 3usize;
-            let rows = MOUSE_AND_ACTION_ITEMS.len().div_ceil(cols).max(1);
+            let rows = mouse_and_action_items().len().div_ceil(cols).max(1);
             let gx = dx + 12.0;
             let gy = dy + 40.0;
             let gw = dw - 24.0;
             let gh = dh - 50.0;
             let cw = (gw - (cols as f32 - 1.0) * 6.0) / cols as f32;
             let ch = ((gh - (rows as f32 - 1.0) * 4.0) / rows as f32).clamp(21.0, 32.0);
-            for (i, (lbl, tok)) in MOUSE_AND_ACTION_ITEMS.iter().enumerate() {
+            for (i, (lbl, tok)) in mouse_and_action_items().iter().enumerate() {
                 let col = i % cols;
                 let row = i / cols;
                 let cx = gx + col as f32 * (cw + 6.0);
@@ -2153,14 +2160,14 @@ impl TouchUi {
                         return Some(InGameMenuAction::Close);
                     }
                     let cols = 3usize;
-                    let rows = MOUSE_AND_ACTION_ITEMS.len().div_ceil(cols).max(1);
+                    let rows = mouse_and_action_items().len().div_ceil(cols).max(1);
                     let gx = mdx + 12.0;
                     let gy = mdy + 40.0;
                     let gw = mdw - 24.0;
                     let gh = mdh - 50.0;
                     let mcw = (gw - (cols as f32 - 1.0) * 6.0) / cols as f32;
                     let mch = ((gh - (rows as f32 - 1.0) * 4.0) / rows as f32).clamp(21.0, 32.0);
-                    for (i, (_lbl, tok)) in MOUSE_AND_ACTION_ITEMS.iter().enumerate() {
+                    for (i, (_lbl, tok)) in mouse_and_action_items().iter().enumerate() {
                         let col = i % cols;
                         let row = i / cols;
                         let icx = gx + col as f32 * (mcw + 6.0);
@@ -7247,14 +7254,14 @@ pub fn touch_hud_editor(
                         return false;
                     }
                     let cols = 3usize;
-                    let rows = MOUSE_AND_ACTION_ITEMS.len().div_ceil(cols).max(1);
+                    let rows = mouse_and_action_items().len().div_ceil(cols).max(1);
                     let gx = dx + 12.0;
                     let gy = dy + 40.0;
                     let gw = dw - 24.0;
                     let gh = dh - 50.0;
                     let cw = (gw - (cols as f32 - 1.0) * 6.0) / cols as f32;
                     let ch = ((gh - (rows as f32 - 1.0) * 4.0) / rows as f32).clamp(21.0, 32.0);
-                    for (i, (lbl, tok)) in MOUSE_AND_ACTION_ITEMS.iter().enumerate() {
+                    for (i, (lbl, tok)) in mouse_and_action_items().iter().enumerate() {
                         let col = i % cols;
                         let row = i / cols;
                         let cx = gx + col as f32 * (cw + 6.0);
