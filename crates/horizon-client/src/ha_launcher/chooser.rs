@@ -247,7 +247,7 @@ impl Launcher {
                 [
                     (
                         0u32,
-                        "Auto (Phone DPI)",
+                        crate::i18n_launcher::tr("Auto (Phone DPI)", "自动（手机 DPI）"),
                         crate::i18n_launcher::tr("Automatically matches your display's DPI density", "自动匹配显示器的 DPI 密度"),
                     ),
                     (85, "85% (Compact)", crate::i18n_launcher::tr("Fits more rows on screen", "屏幕上可容纳更多行")),
@@ -327,7 +327,7 @@ impl Launcher {
 impl Chooser {
     pub(super) fn confirm_delete(name: String) -> Self {
         Self {
-            title: "Remove add-on?",
+            title: crate::i18n_launcher::tr("Remove add-on?", "移除附加组件？"),
             help: crate::i18n_launcher::tr("Deletes only the selected file from this profile. This cannot be undone.", "仅从此档案中删除所选文件，此操作不可撤销。"),
             device: Some(name),
             choices: vec![
@@ -347,7 +347,7 @@ impl Chooser {
     /// Cancel goes back to the profiles.
     pub(super) fn confirm_delete_profile(id: u32) -> Self {
         Self {
-            title: "Delete profile?",
+            title: crate::i18n_launcher::tr("Delete profile?", "删除配置文件？"),
             help: crate::i18n_launcher::tr("Deletes its worlds, mods, packs and settings. This cannot be undone.", "将删除其世界、模组、资源包与设置。此操作无法撤销。"),
             device: Some(format!("Profile {}", id + 1)),
             choices: vec![

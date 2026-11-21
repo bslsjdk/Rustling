@@ -179,10 +179,10 @@ impl Orientation {
     ];
     pub fn label(self) -> &'static str {
         match self {
-            Self::Landscape => "Landscape (sensor)",
-            Self::Portrait => "Portrait (sensor)",
-            Self::ReverseLandscape => "Landscape (reversed)",
-            Self::ReversePortrait => "Portrait (reversed)",
+            Self::Landscape => crate::i18n_launcher::tr("Landscape (sensor)", "横屏（传感器）"),
+            Self::Portrait => crate::i18n_launcher::tr("Portrait (sensor)", "竖屏（传感器）"),
+            Self::ReverseLandscape => crate::i18n_launcher::tr("Landscape (reversed)", "横屏（反向）"),
+            Self::ReversePortrait => crate::i18n_launcher::tr("Portrait (reversed)", "竖屏（反向）"),
             Self::Auto => crate::i18n_launcher::tr("Automatic rotation", "自动旋转"),
         }
     }
@@ -321,7 +321,7 @@ impl Config {
             100 => "100% (Default DPI)",
             115 => "115% (Large)",
             130 => "130% (Extra Large)",
-            _ => "Auto (Phone DPI)",
+            _ => crate::i18n_launcher::tr("Auto (Phone DPI)", "自动（手机 DPI）"),
         }
     }
     /// The rendering mode chosen in the launcher, as the instance's graphics API: OpenGL ES, or
@@ -554,7 +554,7 @@ impl TransferTracker {
         }
         let speed = self.speed_mib_s;
         if speed <= 0.05 {
-            return "ETA --".into();
+            return crate::i18n_launcher::tr("ETA --", "预计剩余 --").into();
         }
         let secs = (rem / speed).ceil() as u64;
         if secs >= 60 {

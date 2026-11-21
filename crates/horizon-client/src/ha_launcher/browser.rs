@@ -274,7 +274,7 @@ pub trait Source: Send + Sync {
 /// What the launcher says wherever CurseForge would be.
 /// What another source answers for shader packs: Horizon's own are on its registry only.
 pub const SHADERS_ON_HORIZON: &str =
-    "Horizon's shader packs are on Horizon's registry: pick Horizon.";
+    crate::i18n_launcher::tr("Horizon's shader packs are on Horizon's registry: pick Horizon.", "Horizon 的光影包在 Horizon 的注册表里：请选择 Horizon。");
 
 /// The sources this launcher uses: Modrinth and Horizon's registry. CurseForge support is coming
 /// soon: its API needs a paid key, so no search or install goes to it; `curseforge` is kept for

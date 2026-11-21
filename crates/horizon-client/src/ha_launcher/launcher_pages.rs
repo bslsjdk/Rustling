@@ -2047,7 +2047,7 @@ impl Launcher {
                 x + 22.0,
                 y + 56.0,
                 my3_muted(),
-                "What should open after setup?",
+                crate::i18n_launcher::tr("What should open after setup?", "安装完成后打开什么？"),
             );
             ui.text(
                 Face::Regular,
@@ -2109,7 +2109,7 @@ impl Launcher {
                 x + 22.0,
                 y + 24.0,
                 my3_text(),
-                "Exit Starling?",
+                crate::i18n_launcher::tr("Exit Starling?", "退出 Starling？"),
             );
             let bw = (width - 52.0) * 0.5;
             button(
@@ -2500,7 +2500,7 @@ impl Launcher {
                     item.badge,
                 );
 
-                // Status badge pill ("ACTIVE" vs "OFF")
+                // Status badge pill (crate::i18n_launcher::tr("ACTIVE", "启用") vs crate::i18n_launcher::tr("OFF", "关闭"))
                 let status_str = if item.enabled { "ACTIVE" } else { "OFF" };
                 let status_w = if item.enabled { 48.0 } else { 34.0 };
                 let text_x = content_x + 64.0;
@@ -2993,9 +2993,9 @@ impl Launcher {
                 ui.border(mx, my, mw, mh, 20.0, my3_border());
                 ui.icon(Icon::Trash, mx + 20.0, my + 20.0, 22.0, my3_accent());
                 let title = if paths.len() == 1 {
-                    "Delete selected item?".to_owned()
+                    crate::i18n_launcher::tr("Delete selected item?", "删除所选项目？").to_owned()
                 } else {
-                    format!("Delete {} selected items?", paths.len())
+                    format!(crate::i18n_launcher::tr("Delete {} selected items?", "删除 {} 个所选项目？"), paths.len())
                 };
                 ui.text(
                     Face::SemiBold,
@@ -3270,7 +3270,7 @@ impl Launcher {
                 .map_or_else(|| crate::i18n_launcher::tr("Latest", "最新").to_owned(), |v| v.number.clone());
             if let Some(bundled) = modal.bundled_id {
                 if self.catalog.bundled_enabled.contains(bundled) {
-                    "Installed (Tap to Disable)".to_owned()
+                    crate::i18n_launcher::tr("Installed (Tap to Disable)", "已安装（点击停用）").to_owned()
                 } else {
                     format!("启用内置 ({version})")
                 }
@@ -3808,7 +3808,7 @@ impl Launcher {
                 (
                     Icon::Monitor,
                     crate::i18n_launcher::tr("Video Settings", "视频设置"),
-                    "Rendering, resolution and performance",
+                    crate::i18n_launcher::tr("Rendering, resolution and performance", "渲染、分辨率与性能"),
                     Action::SettingsCat(SettingsCategory::Video),
                 ),
                 (
@@ -3820,7 +3820,7 @@ impl Launcher {
                 (
                     Icon::Gamepad,
                     crate::i18n_launcher::tr("Controls", "按键控制"),
-                    "HUD touch layout, buttons, sensitivity and profiles",
+                    crate::i18n_launcher::tr("HUD touch layout, buttons, sensitivity and profiles", "HUD 触控布局、按钮、灵敏度与配置"),
                     Action::SettingsCat(SettingsCategory::Controls),
                 ),
                 (
@@ -3832,7 +3832,7 @@ impl Launcher {
                 (
                     Icon::Terminal,
                     crate::i18n_launcher::tr("Diagnostics", "诊断"),
-                    "Logs, device info and troubleshooting",
+                    crate::i18n_launcher::tr("Logs, device info and troubleshooting", "日志、设备信息与故障排查"),
                     Action::SettingsCat(SettingsCategory::Diagnostics),
                 ),
                 (
@@ -4000,9 +4000,9 @@ impl Launcher {
                         "3D framebuffer resolution percentage (also adjustable live in-game via Floating Menu)",
                         if self.catalog.editing == Some("render_scale") {
                             SettingControl::TextField {
-                                label: "SCALE %",
+                                label: crate::i18n_launcher::tr("SCALE %", "缩放 %"),
                                 value: &self.catalog.render_scale_text,
-                                hint: "25 - 200%",
+                                hint: crate::i18n_launcher::tr("25 - 200%", "25 - 200%"),
                                 active: true,
                                 action: Action::Field("render_scale"),
                             }
@@ -4143,7 +4143,7 @@ impl Launcher {
                 let profile_str = format!("Profile {} v", c.profile + 1);
                 let input_str = format!("{} v", c.input_host.label());
                 let worker_str = if c.worker_limit == 0 {
-                    "Auto (Big.LITTLE Safe) v".to_owned()
+                    crate::i18n_launcher::tr("Auto (Big.LITTLE Safe) v", "自动（大小核安全）v").to_owned()
                 } else {
                     format!("{} threads v", c.worker_limit)
                 };
@@ -4226,7 +4226,7 @@ impl Launcher {
                         crate::i18n_launcher::tr("Quick-join server address", "快速加入服务器地址"),
                         crate::i18n_launcher::tr("Optional server IP:port to connect immediately on Play", "可选服务器 IP:端口，点击启动时立即连接"),
                         SettingControl::TextField {
-                            label: "SERVER IP",
+                            label: crate::i18n_launcher::tr("SERVER IP", "服务器 IP"),
                             value: &c.server,
                             hint: &server_str,
                             active: self.catalog.editing == Some("server"),
@@ -4466,7 +4466,7 @@ impl Launcher {
                     content_x,
                     cy,
                     my3_accent(),
-                    "PRESET THEMES",
+                    crate::i18n_launcher::tr("PRESET THEMES", "预设主题"),
                 );
                 cy += 22.0;
                 let p_cols = if compact { 2 } else { 4 };
@@ -4561,7 +4561,7 @@ impl Launcher {
                     content_x,
                     cy,
                     my3_accent(),
-                    "CUSTOM ACCENT COLOR",
+                    crate::i18n_launcher::tr("CUSTOM ACCENT COLOR", "自定义强调色"),
                 );
                 cy += 22.0;
                 if cy + 52.0 >= list_top && cy <= list_bottom {
@@ -4599,7 +4599,7 @@ impl Launcher {
                         cy + 5.0,
                         114.0,
                         40.0,
-                        "ACCENT HEX",
+                        crate::i18n_launcher::tr("ACCENT HEX", "强调色 HEX"),
                         &theme_cfg.custom_accent_hex,
                         "#9A7BFF",
                         self.catalog.editing == Some("theme_accent"),
@@ -4659,7 +4659,7 @@ impl Launcher {
                         cy + 5.0,
                         108.0,
                         40.0,
-                        "BG HEX",
+                        crate::i18n_launcher::tr("BG HEX", "背景 HEX"),
                         &theme_cfg.custom_bg_hex,
                         "#13111C",
                         self.catalog.editing == Some("theme_bg"),
@@ -4675,7 +4675,7 @@ impl Launcher {
                         cy + 5.0,
                         108.0,
                         40.0,
-                        "CARD HEX",
+                        crate::i18n_launcher::tr("CARD HEX", "卡片 HEX"),
                         &theme_cfg.custom_surface_hex,
                         "#1D192B",
                         self.catalog.editing == Some("theme_surface"),
@@ -4730,7 +4730,7 @@ impl Launcher {
                             if theme_cfg.use_three_stops {
                                 crate::i18n_launcher::tr("Mid Stop", "中停")
                             } else {
-                                "Mid (Off)"
+                                crate::i18n_launcher::tr("Mid (Off)", "中（关）")
                             },
                             theme_cfg.gradient_mid_hex.as_str(),
                             "theme_grad_mid",
@@ -4853,7 +4853,7 @@ impl Launcher {
                 let edit_meta_sub = if touch_cfg.is_default_preset() {
                     "Default layout is protected and cannot be renamed or overwritten; use Copy Preset"
                 } else {
-                    "Pencil / Edit: rename or update description of the selected user preset"
+                    crate::i18n_launcher::tr("Pencil / Edit: rename or update description of the selected user preset", "铅笔 / 编辑：重命名或修改所选用户预设的描述")
                 };
                 let edit_meta_btn = if touch_cfg.is_default_preset() {
                     crate::i18n_launcher::tr("Protected", "受保护")
@@ -4866,7 +4866,7 @@ impl Launcher {
                 {
                     crate::i18n_launcher::tr("Typing Desc...", "输入描述…")
                 } else {
-                    "Edit (Pencil)"
+                    crate::i18n_launcher::tr("Edit (Pencil)", "编辑（铅笔）")
                 };
 
                 let mouse_sens = format!("{:.0}%", opts.sensitivity * 200.0);
@@ -4910,7 +4910,7 @@ impl Launcher {
                         crate::i18n_launcher::tr("Duplicate selected layout into a new independent preset with custom name & description", "将所选布局复制为新的独立预设，并可自定义名称与描述"),
                         if self.catalog.editing == Some("profile_name") {
                             SettingControl::TextField {
-                                label: "PRESET NAME",
+                                label: crate::i18n_launcher::tr("PRESET NAME", "预设名称"),
                                 value: &self.catalog.config.custom_profile_name,
                                 hint: crate::i18n_launcher::tr("Enter preset name", "输入预设名称"),
                                 active: true,
@@ -4950,7 +4950,7 @@ impl Launcher {
                         SettingControl::SectionHeader("CAMERA", Icon::Shaders),
                     ),
                     (
-                        "Sensitivity (Touch Look Speed)",
+                        crate::i18n_launcher::tr("Sensitivity (Touch Look Speed)", "灵敏度（触控视角速度）"),
                         crate::i18n_launcher::tr("Direct finger drag camera rotation speed multiplier", "手指拖动旋转视角的速度倍率"),
                         SettingControl::Slider {
                             value_label: &touch_sens,
@@ -5098,9 +5098,9 @@ impl Launcher {
                     let half_w = (content_w - 10.0) * 0.5;
                     for (i, (title, sub, badge, selected, action)) in [
                         (
-                            "MCPE (Default)",
+                            crate::i18n_launcher::tr("MCPE (Default)", "MCPE（默认）"),
                             crate::i18n_launcher::tr("Vanilla touch sprites, D-Pad & thumbstick", "原版触控贴图、方向键与摇杆"),
-                            "CLASSIC HUD",
+                            crate::i18n_launcher::tr("CLASSIC HUD", "经典界面"),
                             is_mcpe,
                             Action::SelectControlMode(
                                 crate::ha_launcher::client::touch::ControlStyle::Mcpe,
@@ -5109,7 +5109,7 @@ impl Launcher {
                         (
                             "GoyControl",
                             crate::i18n_launcher::tr("Custom multi-bind HUD, macros & pass-through", "自定义多重绑定 HUD、宏与穿透"),
-                            "PRO OVERLAY",
+                            crate::i18n_launcher::tr("PRO OVERLAY", "专业覆盖层"),
                             is_goy,
                             Action::SelectControlMode(
                                 crate::ha_launcher::client::touch::ControlStyle::GoyControl,
@@ -6424,7 +6424,7 @@ impl Launcher {
                 self.catalog.config.apply_experimental_to_game(&self.home);
                 self.modify_touch_settings(|t| t.disable_game_animations = next);
                 self.catalog.status = if next {
-                    "In-game animations disabled (static textures, instant FOV/menus, no view bobbing)."
+                    crate::i18n_launcher::tr("In-game animations disabled (static textures, instant FOV/menus, no view bobbing).", "已禁用游戏内动画（静态纹理、瞬时视场/菜单、无视角摇晃）。")
                 } else {
                     crate::i18n_launcher::tr("In-game animations enabled.", "游戏内动画已启用。")
                 }

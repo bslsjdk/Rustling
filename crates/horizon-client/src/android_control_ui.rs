@@ -1436,7 +1436,7 @@ fn draw_input_picker_modal(
             let title_str = if for_custom_send {
                 "Send Custom Input — Full PC Keyboard (Tap or Swipe)".to_owned()
             } else if mcpe_exclusive {
-                "MCPE Exclusive Keyboard Binding (Clears Mouse)".to_owned()
+                crate::i18n_launcher::tr("MCPE Exclusive Keyboard Binding (Clears Mouse)", "MCPE 专属键盘绑定（清除鼠标）").to_owned()
             } else {
                 format!(
                     "Event Slot #{} — Full PC Keyboard (Tap or Swipe)",
@@ -1512,7 +1512,7 @@ fn draw_input_picker_modal(
             let title_str = if for_custom_send {
                 "Send Custom Input — Mouse Buttons, Wheel & Actions".to_owned()
             } else if mcpe_exclusive {
-                "MCPE Exclusive Mouse/Action Binding (Clears Keyboard Binding)".to_owned()
+                crate::i18n_launcher::tr("MCPE Exclusive Mouse/Action Binding (Clears Keyboard Binding)", "MCPE 专属鼠标/动作绑定（清除键盘绑定）").to_owned()
             } else {
                 format!(
                     "Event Slot #{} — Mouse Buttons, Wheel, Look & Actions",
@@ -2938,7 +2938,7 @@ impl TouchUi {
         let mode_badge_txt = if settings.control_style == ControlStyle::Mcpe {
             crate::i18n_launcher::tr("MCPE Controls", "MCPE 按键")
         } else {
-            "GoyControl HUD"
+            crate::i18n_launcher::tr("GoyControl HUD", "GoyControl 界面")
         };
         let badge_w = 104.0;
         let badge_r = [dx + dw - 188.0, dy + 11.0, badge_w, 26.0];
@@ -3854,9 +3854,9 @@ impl TouchUi {
                     [cx, body_y + 18.0, feedback_width, 46.0],
                     text_c,
                     if settings.ui_vibrate {
-                        "UI vibration: ON"
+                        crate::i18n_launcher::tr("UI vibration: ON", "界面震动：开")
                     } else {
-                        "UI vibration: OFF"
+                        crate::i18n_launcher::tr("UI vibration: OFF", "界面震动：关")
                     },
                 );
                 ui.centered_fit(
@@ -5003,7 +5003,7 @@ pub fn draw_hud_editor(
             dx + 18.0,
             dy + 60.0,
             muted_c,
-            "Save your changes before leaving, or go back without saving?",
+            crate::i18n_launcher::tr("Save your changes before leaving, or go back without saving?", "离开前保存更改，还是不保存直接返回？"),
         );
         let bw = (dw - 44.0) * 0.5;
         let by = dy + dh - 50.0;
@@ -6064,7 +6064,7 @@ pub fn draw_hud_editor(
                                 crate::android_controls::custom::friendly_token_name(cur_tok)
                             )
                         } else {
-                            "Inactive (Cleared)".to_owned()
+                            crate::i18n_launcher::tr("Inactive (Cleared)", "未启用（已清除）").to_owned()
                         };
                         let ms_lbl = if is_ms {
                             format!(
@@ -6072,12 +6072,12 @@ pub fn draw_hud_editor(
                                 crate::android_controls::custom::friendly_token_name(cur_tok)
                             )
                         } else {
-                            "Inactive (Cleared)".to_owned()
+                            crate::i18n_launcher::tr("Inactive (Cleared)", "未启用（已清除）").to_owned()
                         };
                         let half_w = (ww - 24.0 - 8.0) * 0.5;
                         for (ci, (title, status, active)) in [
-                            ("KEYBOARD BINDING (EXCLUSIVE)", kb_lbl.as_str(), is_kb),
-                            ("MOUSE / ACTION BINDING (EXCLUSIVE)", ms_lbl.as_str(), is_ms),
+                            (crate::i18n_launcher::tr("KEYBOARD BINDING (EXCLUSIVE)", "键盘绑定（互斥）"), kb_lbl.as_str(), is_kb),
+                            (crate::i18n_launcher::tr("MOUSE / ACTION BINDING (EXCLUSIVE)", "鼠标 / 动作绑定（互斥）"), ms_lbl.as_str(), is_ms),
                         ]
                         .into_iter()
                         .enumerate()
@@ -6181,27 +6181,27 @@ pub fn draw_hud_editor(
                     for (i, (lbl, on, danger)) in [
                         (
                             if p.passthrough {
-                                "Pass-Thru: ON"
+                                crate::i18n_launcher::tr("Pass-Thru: ON", "穿透：开")
                             } else {
-                                "Pass-Thru: OFF"
+                                crate::i18n_launcher::tr("Pass-Thru: OFF", "穿透：关")
                             },
                             p.passthrough,
                             false,
                         ),
                         (
                             if p.toggleable {
-                                "Mode: Toggle"
+                                crate::i18n_launcher::tr("Mode: Toggle", "模式：切换")
                             } else {
-                                "Mode: Hold"
+                                crate::i18n_launcher::tr("Mode: Hold", "模式：按住")
                             },
                             p.toggleable,
                             false,
                         ),
                         (
                             if p.swipeable {
-                                "Swipe: ON"
+                                crate::i18n_launcher::tr("Swipe: ON", "滑动：开")
                             } else {
-                                "Swipe: OFF"
+                                crate::i18n_launcher::tr("Swipe: OFF", "滑动：关")
                             },
                             p.swipeable,
                             false,
@@ -6210,9 +6210,9 @@ pub fn draw_hud_editor(
                             if ed.selected_custom.is_some() {
                                 crate::i18n_launcher::tr("Delete Button", "删除按钮")
                             } else if is_vis {
-                                "Visible: YES"
+                                crate::i18n_launcher::tr("Visible: YES", "可见：是")
                             } else {
-                                "Visible: NO"
+                                crate::i18n_launcher::tr("Visible: NO", "可见：否")
                             },
                             is_vis,
                             ed.selected_custom.is_some(),
@@ -6490,7 +6490,7 @@ pub fn draw_hud_editor(
             dx + 14.0,
             dy + 86.0,
             accent,
-            "OPTION B: CREATE A NEW PRESET AS...",
+            crate::i18n_launcher::tr("OPTION B: CREATE A NEW PRESET AS...", "选项 B：新建预设为……"),
         );
         let iy = dy + 100.0;
         let nw = (dw - 28.0 - 8.0) * 0.44;
@@ -6700,15 +6700,15 @@ pub fn draw_hud_editor(
         let gy = py + 50.0;
         let gw = (dw - 28.0 - 12.0) / 4.0;
         let move_lbl = match tc.settings.mode {
-            crate::android_controls::Mode::Dpad => "Move: D-Pad",
-            crate::android_controls::Mode::Crosshair => "Move: Joystick",
-            crate::android_controls::Mode::Tap => "Move: Tap Stick",
+            crate::android_controls::Mode::Dpad => crate::i18n_launcher::tr("Move: D-Pad", "移动：方向键"),
+            crate::android_controls::Mode::Crosshair => crate::i18n_launcher::tr("Move: Joystick", "移动：摇杆"),
+            crate::android_controls::Mode::Tap => crate::i18n_launcher::tr("Move: Tap Stick", "移动：点按摇杆"),
         };
         let area_lbl = match tc.settings.joystick_style.move_area {
-            JoystickMoveArea::MidBottomLeft => "Area: Mid-Left",
-            JoystickMoveArea::RightSideAnywhere => "Area: Right Side",
-            JoystickMoveArea::AbsoluteFixed => "Area: Fixed",
-            JoystickMoveArea::FollowFinger => "Area: Follow",
+            JoystickMoveArea::MidBottomLeft => crate::i18n_launcher::tr("Area: Mid-Left", "区域：左中"),
+            JoystickMoveArea::RightSideAnywhere => crate::i18n_launcher::tr("Area: Right Side", "区域：右侧"),
+            JoystickMoveArea::AbsoluteFixed => crate::i18n_launcher::tr("Area: Fixed", "区域：固定"),
+            JoystickMoveArea::FollowFinger => crate::i18n_launcher::tr("Area: Follow", "区域：跟随"),
         };
         for (i, (lbl, on)) in [
             (move_lbl, true),
@@ -6723,9 +6723,9 @@ pub fn draw_hud_editor(
             ),
             (
                 if ed.show_hidden {
-                    "Hidden: SHOWN"
+                    crate::i18n_launcher::tr("Hidden: SHOWN", "隐藏：显示")
                 } else {
-                    "Hidden: HIDE"
+                    crate::i18n_launcher::tr("Hidden: HIDE", "隐藏：隐藏")
                 },
                 ed.show_hidden,
             ),

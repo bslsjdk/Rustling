@@ -256,7 +256,7 @@ pub fn trust_and_capabilities(id: &str) -> Vec<String> {
     }];
     lines.push(match &p.key {
         Some(_) => crate::i18n_launcher::tr("Signed by its author: the launcher checks the signature", "由作者签名：启动器会检查签名").to_owned(),
-        None => "Unsigned: the launcher checks its checksum only".to_owned(),
+        None => crate::i18n_launcher::tr("Unsigned: the launcher checks its checksum only", "未签名：启动器仅校验其校验和").to_owned(),
     });
     if p.kind == index::Kind::NativeMod {
         lines.push(

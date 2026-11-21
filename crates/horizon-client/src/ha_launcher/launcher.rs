@@ -640,7 +640,7 @@ impl ApplicationHandler for Launcher {
             if let Err(error) = result {
                 let message = error.to_string();
                 if message.contains("Dns Failed") || message.contains("lookup address") {
-                    self.fail("Minecraft download interrupted: DNS could not resolve the download host. Check your connection, VPN or Private DNS, then retry Download. Completed files are kept.");
+                    self.fail(crate::i18n_launcher::tr("Minecraft download interrupted: DNS could not resolve the download host. Check your connection, VPN or Private DNS, then retry Download. Completed files are kept.", "Minecraft 下载中断：DNS 无法解析下载主机。请检查网络、VPN 或私人 DNS，然后重试下载。已完成的文件会保留。"));
                 } else {
                     self.fail(error);
                 }
