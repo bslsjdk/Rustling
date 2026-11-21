@@ -4,6 +4,7 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{self, ErrorKind},
     path::{Path, PathBuf},
+    sync::OnceLock,
 };
 
 pub const ROOT: &str = "horizon";
@@ -533,16 +534,19 @@ pub const PROTECTED_SYSTEM_NAMES: &[&str] = &[
     "profiles",
 ];
 
-pub const FM_ROOT_DIRS: &[(&str, &str)] = &[
-    ("", crate::i18n_launcher::tr("Root", "根目录")),
-    ("saves", crate::i18n_launcher::tr("Worlds", "世界")),
-    ("horizon-mods", crate::i18n_launcher::tr("Mods", "模组")),
-    ("resourcepacks", crate::i18n_launcher::tr("Resource Packs", "资源包")),
-    ("shaderpacks", crate::i18n_launcher::tr("Shaders", "光影")),
-    ("controls", crate::i18n_launcher::tr("Controls", "按键控制")),
-    ("screenshots", crate::i18n_launcher::tr("Shots", "镜头")),
-    ("performance", crate::i18n_launcher::tr("Reports", "报告")),
-];
+static FM_ROOT_DIRS_ONCE: OnceLock<Vec<(&'static str, &'static str)>> = OnceLock::new();
+pub fn fm_root_dirs() -> &'static [(&'static str, &'static str)] {
+    FM_ROOT_DIRS_ONCE.get_or_init(|| vec![
+        ("", crate::i18n_launcher::tr("Root", "根目录")),
+        ("saves", crate::i18n_launcher::tr("Worlds", "世界")),
+        ("horizon-mods", crate::i18n_launcher::tr("Mods", "模组")),
+        ("resourcepacks", crate::i18n_launcher::tr("Resource Packs", "资源包")),
+        ("shaderpacks", crate::i18n_launcher::tr("Shaders", "光影")),
+        ("controls", crate::i18n_launcher::tr("Controls", "按键控制")),
+        ("screenshots", crate::i18n_launcher::tr("Shots", "镜头")),
+        ("performance", crate::i18n_launcher::tr("Reports", "报告")),
+    ])
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FmEntry {
@@ -667,7 +671,7 @@ pub fn resolve_fm_path(home: &Path, profile_root: &Path, rel: &str) -> Result<Pa
 
 pub fn ensure_fm_dirs(home: &Path, profile_root: &Path) {
     let _ = fs::create_dir_all(profile_root);
-    for (sub, _) in FM_ROOT_DIRS {
+    for (sub, _) in fm_root_dirs() {
         if sub.is_empty() {
             continue;
         }

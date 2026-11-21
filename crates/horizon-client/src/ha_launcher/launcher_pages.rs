@@ -2701,7 +2701,7 @@ impl Launcher {
 
         // Row 2: Quick Root Folder Pills (Root, Worlds, Mods, Packs, Shaders, Controls, Shots, Reports)
         let root_y = 128.0 + slide_y;
-        let root_dirs = crate::ha_launcher::document_store::FM_ROOT_DIRS;
+        let root_dirs = crate::ha_launcher::document_store::fm_root_dirs();
         let r_gap = 4.0;
         let r_w = ((content_w - r_gap * (root_dirs.len() as f32 - 1.0)) / root_dirs.len() as f32)
             .max(38.0);
