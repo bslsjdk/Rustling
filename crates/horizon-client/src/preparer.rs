@@ -161,7 +161,7 @@ fn ensure_local_pinned() -> Result<LocalPinned, String> {
     Ok(LocalPinned {
         version_json: dir.join("versions").join(&version).join(format!("{version}.json")),
         server_jar: installed.server_jar
-            .ok_or_else(|| "The pinned server jar is not listed by the game files.".into())?,
+            .ok_or_else(|| String::from("The pinned server jar is not listed by the game files."))?,
     })
 }
 
