@@ -257,8 +257,10 @@ fn run(resources: &Path, local: Option<&Path>, started: Instant) -> Result<(), S
         },
     )?;
     // The sounds: `prepare` leaves them out (the desktop launcher copies them after it,
-    // backend.rs). Without them the game plays, silent.
-    copy_sounds(&kit)?;
+    // backend.rs). Without them the game plays, silent. Read them from the same folder the
+    // preparation used — for a local import that is the player's Minecraft, not the empty
+    // private download folder.
+    copy_sounds(&kit, &minecraft_dir)?;
     let missing = horizon_prepare::check(&kit, &made)?;
     if !missing.is_empty() {
         return Err(format!(
@@ -282,9 +284,10 @@ fn run(resources: &Path, local: Option<&Path>, started: Instant) -> Result<(), S
     Ok(())
 }
 
-/// The fetched files' sounds into `kit`'s prepared folder (horizon-prepare's `sounds`).
-fn copy_sounds(kit: &Path) -> Result<(), String> {
-    horizon_prepare::sounds(kit, Some(&crate::accounts::files_root()), &|line| {
+/// The sounds into `kit`'s prepared folder (horizon-prepare's `sounds`), from whichever
+/// Minecraft folder the preparation read.
+fn copy_sounds(kit: &Path, minecraft: &Path) -> Result<(), String> {
+    horizon_prepare::sounds(kit, Some(minecraft), &|line| {
         log::info!("Horizon: preparing: {line}");
         *shared() = Stage::Preparing(line.to_owned());
     })
