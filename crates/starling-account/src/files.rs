@@ -178,20 +178,59 @@ pub(crate) fn retrying<T>(mut attempt: impl FnMut() -> Result<T, Failure>) -> Re
     attempt().map_err(|(Failure::Again(e) | Failure::Final(e))| e)
 }
 
+/// Mojang's hosts, in the order we try them. `piston-*` and `resources.download.minecraft.net`
+/// are mirrored byte-for-byte by BMCLAPI; a mirror serving a wrong file is caught by the sha1
+/// check below, so a region where one host is blocked falls through to the next.
+const MOJANG_META: &str = "piston-meta.mojang.com";
+const MOJANG_DATA: &str = "piston-data.mojang.com";
+const MOJANG_RESOURCES: &str = "resources.download.minecraft.net";
+const MIRRORS: [&str; 2] = ["bmclapi2.bangbang93.com", "bmclapi.bangbang93.com"];
+
+/// The same file at Mojang and at each mirror, original first so a region that can reach Mojang
+/// uses it and one that cannot falls through. Only the host changes — the paths are identical.
+fn sources_for(url: &str) -> Vec<String> {
+    let mut out = vec![url.to_owned()];
+    if url.contains(MOJANG_META) || url.contains(MOJANG_DATA) {
+        // BMCLAPI serves these at the very same path (v1/packages, v1/objects).
+        for m in MIRRORS {
+            out.push(url.replace(MOJANG_META, m).replace(MOJANG_DATA, m));
+        }
+    } else if url.contains(MOJANG_RESOURCES) {
+        // Asset objects: Mojang is /<2>/<hash>, BMCLAPI needs an /assets prefix.
+        for m in MIRRORS {
+            out.push(url.replace(MOJANG_RESOURCES, &format!("{m}/assets")));
+        }
+    }
+    out
+}
+
 /// `url`'s body, which must hash to `sha1`; the error names the file, never more of the URL.
 fn fetch_checked(url: &str, sha1: &str, name: &str) -> Result<Vec<u8>, String> {
+    let mut last = String::new();
+    for source in sources_for(url) {
+        match fetch_one(&source, sha1, name) {
+            Ok(body) => return Ok(body),
+            Err(e) => last = e,
+        }
+    }
+    Err(last)
+}
+
+fn fetch_one(url: &str, sha1: &str, name: &str) -> Result<Vec<u8>, String> {
     let body = retrying(|| {
         let response = agent().get(url).call().map_err(|e| match e {
             ureq::Error::Status(code, _) => {
                 if may_pass(code) {
                     Failure::Again(format!(
-                        "Mojang's server refused {name} ({code}). Try again in a few minutes."
+                        "The download server refused {name} ({code}). Try again in a few minutes."
                     ))
                 } else {
-                    Failure::Final(format!("Mojang's server refused {name} ({code})."))
+                    Failure::Final(format!("The download server refused {name} ({code})."))
                 }
             }
-            ureq::Error::Transport(t) => Failure::Again(format!(
+            // A connection/DNS failure means this host is unreachable here: don't burn the
+            // retries on it, fall through to the next mirror at once.
+            ureq::Error::Transport(t) => Failure::Final(format!(
                 "Could not download {name} ({}). Check your internet connection.",
                 crate::transport_detail(&t)
             )),
@@ -205,9 +244,7 @@ fn fetch_checked(url: &str, sha1: &str, name: &str) -> Result<Vec<u8>, String> {
     })?;
     match sha1_hex(&body) {
         actual if actual == sha1 => Ok(body),
-        _ => Err(format!(
-            "{name} is not the file Mojang lists (its hash differs)."
-        )),
+        _ => Err(format!("{name} is not the file Mojang lists (its hash differs).")),
     }
 }
 
