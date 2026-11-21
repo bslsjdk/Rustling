@@ -49,6 +49,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   apk:
+    # Push/PR/tag build every ABI so 32-bit ARM and x86 devices stay covered.
+    if: ${{ github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
@@ -57,11 +59,6 @@ jobs:
           - { abi: armeabi-v7a, target: armv7-linux-androideabi }
           - { abi: x86, target: i686-linux-android }
           - { abi: x86_64, target: x86_64-linux-android }
-        # Manual fast iteration builds just arm64; push/PR/tag keep all four ABIs so
-        # devices on 32-bit ARM or x86 stay covered before a release.
-        # github.event.inputs (unlike inputs) is available in matrix evaluation. On a manual
-        # dispatch with arm64_only (the default) skip the other three; push/PR/tag keep all four.
-        exclude: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.arm64_only == 'true' && fromJSON('[{"abi":"armeabi-v7a"},{"abi":"x86"},{"abi":"x86_64"}]') || fromJSON('[]') }}
     # The release key's environment, for a release build only (none otherwise).
     environment: ${{ (github.repository == 'starling-client/starling' && (startsWith(github.ref, 'refs/tags/v') || inputs.release_key)) && 'release' || '' }}
     runs-on: ubuntu-latest
@@ -190,6 +187,143 @@ jobs:
         run: ../../../target/debug/cargo-horizon-mod horizon-mod build --wasm
       - uses: actions/upload-artifact@v4
         if: inputs.wasm_probe && matrix.abi == 'arm64-v8a'
+        with:
+          name: starling-wasm-probe
+          path: packaging/android/wasm-probe/target/horizon-mod/*.hmod
+          if-no-files-found: error
+
+
+  apk_arm64:
+    # Manual dispatch: one arm64 APK, enough to install and test on a phone.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    # The release key's environment, for a release build only (none otherwise).
+    environment: ${{ (github.repository == 'starling-client/starling' && (startsWith(github.ref, 'refs/tags/v') || inputs.release_key)) && 'release' || '' }}
+    runs-on: ubuntu-latest
+    # A release's fast profile builds slower (fewer codegen units, fewer at once: below).
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # JDK 25 compiles/link-checks original exporters; the build-tools supply d8/apksigner.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Cache the Android NDK, build-tools and platform
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.ANDROID_HOME }}/ndk/28.2.13676358
+            ${{ env.ANDROID_HOME }}/build-tools/35.0.0
+            ${{ env.ANDROID_HOME }}/platforms/android-36
+          key: android-sdk-ndk28.2.13676358-bt35.0.0-p36
+      - name: Install the build-tools, platform and NDK build_apk.py pins
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "build-tools;35.0.0" "platforms;android-36" "ndk;28.2.13676358" > /dev/null
+      - name: Install Rust for Android
+        run: |
+          # The Rust Horizon pins (tools/ci/rust-version), as its CI and the launcher's native mods build with.
+          # rust-src: build_apk.py builds the std with the game (its TLS_FLAGS).
+          bash tools/ci/rustup_install.sh --profile minimal --component rust-src --target aarch64-linux-android
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-ndk@3.5.4
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: android-arm64-v8a
+          save-if: ${{ github.ref == 'refs/heads/android' || github.ref == 'refs/heads/starling' }}
+      - name: Unpack the release key
+        if: env.RELEASE_BUILD == 'true'
+        env:
+          KEYSTORE: ${{ secrets.STARLING_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE" || { echo "STARLING_KEYSTORE_BASE64 is not set"; exit 1; }
+          echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/starling-release.jks"
+          echo "HORIZON_ANDROID_KEYSTORE=$RUNNER_TEMP/starling-release.jks" >> "$GITHUB_ENV"
+      # The fast profile's 16 codegen units of the game's crate took more than the runner's 16 GB, and the runner
+      # went: swap, on the large temporary disk where there is one, and three units at a time instead of four.
+      - name: Make room for the release build
+        if: env.RELEASE_BUILD == 'true'
+        run: |
+          sudo swapoff -a || true
+          where=/mnt size=20G
+          avail=$(df --output=avail -BG "$where" 2>/dev/null | tail -1 | tr -dc 0-9)
+          if [ "${avail:-0}" -lt 30 ]; then where=$RUNNER_TEMP size=10G; fi
+          sudo fallocate -l "$size" "$where/release.swap"
+          sudo chmod 600 "$where/release.swap"
+          sudo mkswap "$where/release.swap" > /dev/null
+          sudo swapon "$where/release.swap"
+          free -h
+          echo "CARGO_BUILD_JOBS=3" >> "$GITHUB_ENV"
+      # Where build_apk.py keeps its debug key (alias horizon-debug, password android).
+      - name: Unpack the debug key
+        if: env.RELEASE_BUILD != 'true'
+        env:
+          KEYSTORE: ${{ secrets.STARLING_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE" || exit 0
+          mkdir -p target/android
+          echo "$KEYSTORE" | base64 -d > target/android/debug.keystore
+      # Compile v2: the arm64 APK's game is a set of Rust libraries (the mod API's crates and the mod host among
+      # them), so a native mod plays from a small library of its own beside them, which mod-builds' store builds
+      # for this commit and profile (its store-base.yml runs this same build). The other ABIs have no store.
+      - name: The game and the mod API as dylibs
+        if: true && !inputs.native_mods
+        run: python3 tools/android_native_sdk.py prepare
+      - name: Build the APK
+        env:
+          RUSTFLAGS: ${{ true && !inputs.native_mods && '-C prefer-dynamic' || '' }}
+          ABI: arm64-v8a
+          HORIZON_ANDROID_KEY_ALIAS: ${{ env.RELEASE_BUILD == 'true' && secrets.STARLING_KEY_ALIAS || 'horizon-debug' }}
+          HORIZON_ANDROID_STORE_PASSWORD: ${{ secrets.STARLING_STORE_PASSWORD }}
+          HORIZON_ANDROID_KEY_PASSWORD: ${{ secrets.STARLING_KEY_PASSWORD }}
+          MODS: ${{ inputs.native_mods }}
+          PROFILE: ${{ env.RELEASE_BUILD == 'true' && 'fast' || 'quick' }}
+          VARIANT: ${{ env.PREVIEW == 'true' && '--preview' || '' }}
+        # Releases with the fast profile (fewer codegen units: a little quicker in game). With native mods, the APK
+        # native_build.sh makes, named after them.
+        run: |
+          if [ -z "$MODS" ]; then
+            python packaging/android/build_apk.py --abi "$ABI" --profile "$PROFILE" $VARIANT ${{ inputs.keep_symbols && '--keep-symbols' || '' }}
+            exit 0
+          fi
+          bundles=()
+          for id in $MODS; do
+            [[ "$id" =~ ^[a-z0-9][a-z0-9_-]*$ && -f "native-mods/$id/mixins/$id/horizon-mixin.toml" ]] || \
+              { echo "$id is not a mod of native-mods/"; exit 1; }
+            bundles+=("native-mods/$id/mixins/$id")
+          done
+          bash packaging/android/native_build.sh . "$RUNNER_TEMP/native" "${bundles[@]}"
+          mkdir -p target/android
+          for apk in "$RUNNER_TEMP"/native/starling-*.apk; do
+            cp "$apk" "target/android/$(basename "${apk%.apk}")-$(echo $MODS | tr ' ' '-').apk"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: starling-apk-arm64-v8a
+          path: target/android/starling-*.apk
+          if-no-files-found: error
+          # A test build with the release key installs over a release: anyone may download a public
+          # repository's artifacts, so it goes after a day.
+          retention-days: ${{ inputs.release_key && 1 || 90 }}
+      # The library with its symbols, to read the frames of native crashes in diagnostic ZIPs
+      # (docs/android-diagnostics.md). Builds with native mods don't make one.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: starling-symbols-arm64-v8a
+          path: target/android/lib*-symbols.so
+          if-no-files-found: ignore
+          retention-days: 90
+      # With the cargo-horizon-mod and the Rust build_apk.py built the wasm std with (build_apk.py `wasm_std`).
+      - name: Build the wasm probe mod
+        if: inputs.wasm_probe && true
+        working-directory: packaging/android/wasm-probe
+        run: ../../../target/debug/cargo-horizon-mod horizon-mod build --wasm
+      - uses: actions/upload-artifact@v4
+        if: inputs.wasm_probe && true
         with:
           name: starling-wasm-probe
           path: packaging/android/wasm-probe/target/horizon-mod/*.hmod
