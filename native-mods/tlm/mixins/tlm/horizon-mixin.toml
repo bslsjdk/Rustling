@@ -1,7 +1,34 @@
 [mod]
 id = "tlm"
 version = "0.1.0"
-# Minimal pipeline-validation bundle: a row in Options > Mods.
+# Pipeline-validation bundle: a row in Options > Mods, plus an animated-model
+# renderer wired through the game's renderer-registration hook.
+
+# Pure helpers injected into the game crate. Inside horizon-client the dependency
+# named `mod_api` is horizon-mod-vocab (crates/horizon-client/Cargo.toml:23), which
+# exports ModelPart, MeshDefinition, AnimationHolder, EntityRenderer and the rest.
+# native_mod_adapt.py's old_api() rewrites only `horizon_client::mod_api` and
+# `crate::mod_api`, never a bare `mod_api::`, so these imports stay as written.
+# The test modules reference siblings as `crate::game::tlm_*` because the modules
+# are injected under `crate::game` rather than a crate root.
+
+[[module]]
+id = "geometry"
+file = "crates/horizon-client/src/game.rs"
+name = "tlm_geometry"
+source = "geometry.rs"
+
+[[module]]
+id = "animation"
+file = "crates/horizon-client/src/game.rs"
+name = "tlm_animation"
+source = "animation.rs"
+
+[[module]]
+id = "render"
+file = "crates/horizon-client/src/game.rs"
+name = "tlm_render"
+source = "render.rs"
 
 [[module]]
 id = "runtime"
@@ -16,4 +43,18 @@ target = "horizon_client::game::native_hooks::Game<'_>::native_mods"
 helper = "list.rs"
 bindings = [
   { name = "mods", ty = "&mut Vec<crate::game::native_hooks::NativeMod>", value = "&mut *mods" },
+]
+
+# The renderer-registration hook (NeoForge's RegisterRenderers). Needs a full
+# native build to verify: the helper's `mod_api::...` types and the binding types
+# must resolve inside horizon-client, and the placeholder entity type is only a
+# wiring check (the game logs it as unknown until a real type is registered).
+[[injection]]
+id = "renderers"
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_register_entity_renderers"
+helper = "register.rs"
+bindings = [
+  { name = "context", ty = "&mod_api::RegistrationContext", value = "context" },
+  { name = "renderers", ty = "&mut dyn mod_api::EntityRenderers", value = "&mut *renderers" },
 ]
