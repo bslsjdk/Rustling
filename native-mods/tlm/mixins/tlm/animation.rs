@@ -1,8 +1,8 @@
-//! Bedrock-format animation JSON to baked keyframe animations.
-//!
-//! Parsing is delegated to the engine's `parse_bedrock_animation` (exported on the mod API),
-//! which handles the format's unit conversions and keyframe variants. This module only bakes the
-//! resulting holders against a model.
+// Bedrock-format animation JSON to baked keyframe animations.
+//
+// Parsing is delegated to the engine's `parse_bedrock_animation` (exported on the mod API),
+// which handles the format's unit conversions and keyframe variants. This module only bakes the
+// resulting holders against a model.
 
 use mod_api::{AnimationHolder, KeyframeAnimation, ModelPart};
 

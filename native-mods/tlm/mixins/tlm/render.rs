@@ -1,5 +1,5 @@
-//! An entity renderer example: pose a baked model with a walk animation and draw it. The renderer
-//! is stateless per entity; its model and animation are shared, so each frame poses a clone.
+// An entity renderer example: pose a baked model with a walk animation and draw it. The renderer
+// is stateless per entity; its model and animation are shared, so each frame poses a clone.
 
 use mod_api::{
     BlockEntityDrawContext, EntityRenderState, EntityRenderer, KeyframeAnimation, ModelPart,

@@ -1,7 +1,7 @@
-//! Bedrock-format geometry JSON to the engine's model part tree. The format declares bones with
-//! an absolute pivot and cubes at an origin and size; this builds a mesh of named parts and bakes
-//! it into a `ModelPart`. File coordinates are y-up, so cube origins and bone pivots are mirrored
-//! on y into the model's y-down frame.
+// Bedrock-format geometry JSON to the engine's model part tree. The format declares bones with
+// an absolute pivot and cubes at an origin and size; this builds a mesh of named parts and bakes
+// it into a `ModelPart`. File coordinates are y-up, so cube origins and bone pivots are mirrored
+// on y into the model's y-down frame.
 
 use mod_api::{
     CubeDeformation, CubeListBuilder, LayerDefinition, MeshDefinition, ModelPart, PartId, PartPose,
