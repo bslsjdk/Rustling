@@ -53,7 +53,7 @@ jobs:
           NATIVE_LIBRARY_ONLY: '1'
         run: |
           cp -r native-mods/tlm/mixins/tlm /tmp/tlm-bundle
-          bash tools/packaging/android/native_build.sh . out /tmp/tlm-bundle
+          bash packaging/android/native_build.sh . out /tmp/tlm-bundle
 
       - uses: actions/upload-artifact@v4
         with:
