@@ -235,9 +235,15 @@ def main():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(font, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
             takes.append(f"starling:hand_{take}")
+    # The hand-drawn bitmap covers ASCII only. A subset of Noto Sans SC supplies the
+    # Chinese glyphs the localized setup screens need; providers are tried in order, so
+    # the hand-drawn letters still win for ASCII and Chinese falls through to the ttf.
+    noto = OUT / "assets" / "minecraft" / "font" / "noto.ttf"
+    shutil.copyfile(HERE / "noto.ttf", noto)
     default = {"providers": [{"type": "space", "advances": {" ": 4}},
                              {"type": "bitmap", "file": "minecraft:font/hand_0.png", "height": 10, "ascent": 8,
-                              "chars": letters(0)[1]}],
+                              "chars": letters(0)[1]},
+                             {"type": "ttf", "file": "minecraft:noto.ttf", "size": 10, "oversample": 2}],
                "starling:variants": takes}
     path = OUT / "assets" / "minecraft" / "font" / "default.json"
     path.parent.mkdir(parents=True, exist_ok=True)

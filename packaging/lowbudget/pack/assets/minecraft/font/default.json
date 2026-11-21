@@ -19,6 +19,12 @@
     "`abcdefghijklmno",
     "pqrstuvwxyz{|}~\u0000"
    ]
+  },
+  {
+   "type": "ttf",
+   "file": "minecraft:noto.ttf",
+   "size": 10,
+   "oversample": 2
   }
  ],
  "starling:variants": [
