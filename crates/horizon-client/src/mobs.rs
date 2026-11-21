@@ -484,6 +484,26 @@ impl MobTypes {
                         );
                     }
                 }
+                // A content-declared living type may ship its own model layers under its full
+                // id (e.g. `example:creature#main`). Index them under the template's bare layer
+                // name in this type's own layer map, so the renderer's ordinary key lookup picks
+                // the type's look without changing the vanilla species it copies.
+                if !id.starts_with("minecraft:") {
+                    let start = format!("{id}#");
+                    for prefix in def.layer_prefixes() {
+                        for (k, v) in all.iter().filter(|(k, _)| k.starts_with(&start)) {
+                            let bare = k.strip_prefix(&start).unwrap_or(k);
+                            if !bare.starts_with(&format!("{prefix}#")) {
+                                continue;
+                            }
+                            let mut part = Part::parse("root", v);
+                            if culls_back_faces(k) {
+                                part.set_cull_back();
+                            }
+                            layers.insert(bare.to_owned(), Arc::new(part));
+                        }
+                    }
+                }
             }
             let category = t["category"].as_str().unwrap_or("creature").to_owned();
             let mut flags = def.flags(t["fire_immune"].as_bool().unwrap_or(false));
