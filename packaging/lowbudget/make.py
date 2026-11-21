@@ -243,7 +243,7 @@ def main():
     default = {"providers": [{"type": "space", "advances": {" ": 4}},
                              {"type": "bitmap", "file": "minecraft:font/hand_0.png", "height": 10, "ascent": 8,
                               "chars": letters(0)[1]},
-                             {"type": "ttf", "file": "minecraft:noto.ttf", "size": 10, "oversample": 2}],
+                             {"type": "ttf", "file": "minecraft:noto.ttf", "size": 8, "oversample": 2}],
                "starling:variants": takes}
     path = OUT / "assets" / "minecraft" / "font" / "default.json"
     path.parent.mkdir(parents=True, exist_ok=True)

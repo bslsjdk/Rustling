@@ -97,7 +97,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: android-${{ matrix.abi }}
-          save-if: ${{ github.ref == 'refs/heads/android' || github.ref == 'refs/heads/starling' }}
+          save-if: ${{ github.ref == 'refs/heads/android' || github.ref == 'refs/heads/starling' || github.ref == 'refs/heads/rustling-090' }}
       - name: Unpack the release key
         if: env.RELEASE_BUILD == 'true'
         env:
@@ -234,7 +234,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: android-arm64-v8a
-          save-if: ${{ github.ref == 'refs/heads/android' || github.ref == 'refs/heads/starling' }}
+          save-if: ${{ github.ref == 'refs/heads/android' || github.ref == 'refs/heads/starling' || github.ref == 'refs/heads/rustling-090' }}
       - name: Unpack the release key
         if: env.RELEASE_BUILD == 'true'
         env:
