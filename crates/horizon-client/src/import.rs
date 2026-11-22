@@ -224,6 +224,11 @@ pub fn install(path: &Path, name: &str, places: &Places) -> Result<Installed, St
             )
         }
         Kind::NativeMod => {
+            // A package may carry a prebuilt v2 library (native-mods.json + lib*.so). Install it
+            // straight into the game's native-libs so it loads at next start with no Compile.
+            if has_prebuilt_library(path) {
+                return install_prebuilt_native(path);
+            }
             // Either format: the registry's `horizon-native.json` bundle or a flat package.
             let bundle = horizon_mod_package::index::native::Any::read(path)
                 .map_err(|e| format!("{name} can't be added: {e}"))?;
@@ -387,6 +392,60 @@ fn extract_into(path: &Path, prefix: &str, to: &Path, skip: &[&str]) -> io::Resu
         io::copy(&mut entry, &mut File::create(&out)?)?;
     }
     fs::rename(&part, to)
+}
+
+/// Whether an archive carries a prebuilt v2 native library: a `native-mods.json` index and at least
+/// one `lib*.so`. Such a package is installed straight into `native-libs/` (no Compile needed).
+fn has_prebuilt_library(path: &Path) -> bool {
+    let Ok(file) = File::open(path) else {
+        return false;
+    };
+    let Ok(mut archive) = zip::ZipArchive::new(file) else {
+        return false;
+    };
+    let mut index = false;
+    let mut library = false;
+    for i in 0..archive.len() {
+        let Ok(mut entry) = archive.by_index(i) else {
+            continue;
+        };
+        let Ok(name) = entry.name() else {
+            continue;
+        };
+        let name = name.to_string();
+        if name == "native-mods.json" || name.ends_with("/native-mods.json") {
+            index = true;
+        }
+        let file = name.rsplit('/').next().unwrap_or(&name);
+        if file.starts_with("lib") && file.ends_with(".so") {
+            library = true;
+        }
+    }
+    index && library
+}
+
+/// Install a prebuilt native-mod library into the game's `native-libs/`, where it loads at the
+/// next start. The library's identity is checked by the loader (`horizon-mod-host::open`), so a
+/// library built for another game build is refused there; the install only places the files.
+fn install_prebuilt_native(path: &Path) -> Result<Installed, String> {
+    let private = std::env::var_os("HORIZON_PRIVATE")
+        .map(PathBuf::from)
+        .ok_or_else(|| "no private game directory".to_string())?;
+    let target = private.join("native-libs");
+    // Stage the whole package under a fresh name, then swap it in: a failed extract leaves the
+    // previous install alone. `extract_into` refuses paths that escape the folder.
+    let staged = sibling(&target, ".stage");
+    let _ = fs::remove_dir_all(&staged);
+    extract_into(path, "", &staged, &[]).map_err(|e| format!("native mod: {e}"))?;
+    let _ = fs::remove_dir_all(&target);
+    fs::rename(&staged, &target)
+        .map_err(|e| format!("native mod: can't install library: {e}"))?;
+    Ok(Installed {
+        kind: Kind::NativeMod,
+        message: "Native mod library installed: restart the game, then toggle it in Options > Mods"
+            .into(),
+        path: Some(target),
+    })
 }
 
 /// What the inbox is doing, for a note on screen.
@@ -602,6 +661,32 @@ mod tests {
         assert_eq!(classify(&dir.join("addon.mcaddon")).0, Kind::Bedrock);
         fs::write(dir.join("plain.txt"), b"hello").unwrap();
         assert_eq!(classify(&dir.join("plain.txt")).0, Kind::Unknown);
+    }
+
+    #[test]
+    fn prebuilt_native_library_package_is_detected() {
+        let dir = scratch("prebuilt-native");
+        let manifest = br#"id = "example"
+name = "Example"
+version = "0.1.0"
+api = "0.2"
+side = "both"
+capabilities = []
+
+[native]
+"#;
+        let pack = dir.join("example.hmod");
+        zip_of(&pack, &[
+            ("horizon-mod.toml", manifest),
+            ("native-mods.json", br#"{"libraries":[]}"#),
+            ("libexample.so", b"not a real library"),
+        ]);
+        assert_eq!(classify(&pack).0, Kind::NativeMod);
+        assert!(has_prebuilt_library(&pack));
+        // A regular native source package (no prebuilt library) is not mistaken for one.
+        let plain = dir.join("plain.hmod");
+        zip_of(&plain, &[("horizon-mod.toml", manifest), ("src/lib.rs", b"")]);
+        assert!(!has_prebuilt_library(&plain));
     }
 
     #[test]
