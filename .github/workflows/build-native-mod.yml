@@ -1,0 +1,169 @@
+name: build-native-mod
+# Build the Touhou Little Maid native .hmod as an INDEPENDENT library with the engine's
+# tools/android_native_sdk.py route: version-2 switchable, not welded into the APK and not
+# using the official build service. Everything compiles on GitHub Actions because the phone
+# has little memory.
+#
+# Call order matters (android_native_sdk.py:4-6, :174-179):
+#   prepare  -> rewrites this CI checkout's manifests (rlib+dylib, native-mods-build/* glob,
+#               system-allocator) and must run BEFORE the APK build;
+#   build_apk.py with RUSTFLAGS=-C prefer-dynamic -> the APK baseline carrying the game and
+#               mod API as shared libraries;
+#   mods OUT MOD.hmod... -> compiles the mod beside the game into OUT (native-libs).
+# `mods` refuses [native.mixin]/[native.bridge]/[native.module] (they need the staged game);
+# scripts/check_native_hmod.py checks that early with a clearer message.
+#
+# IDENTITY: crates/horizon-mod-host/build.rs bakes HORIZON_GAME_BUILD_ID into the game, and
+# android_native_sdk.py game_build() uses the SAME env for every mod's identity. We pin it to
+# the checked-out game commit below, so lib*.so can only load with that exact game build.
+# Any .hmod [native] horizon value is informational here, not the commit the loader checks;
+# the current package has an empty [native] table and the identity is still the game commit.
+#
+# This file is also on starling via API because workflow_dispatch only sees the default
+# branch; the checkout below still builds the rustling-090 source with the mod API.
+on:
+  workflow_dispatch:
+    inputs:
+      game_ref:
+        description: Game branch to build (needs mod API + tools/android_native_sdk.py)
+        required: true
+        default: rustling-090
+      profile:
+        description: Cargo profile (quick for tests, fast for a Nightly)
+        type: choice
+        options: [quick, fast]
+        default: quick
+      hmod:
+        description: .hmod path inside bslsjdk/rustling-mod-port
+        required: true
+        default: mods/touhou_little_maid/tlm-0.1.0.hmod
+permissions:
+  contents: read
+env:
+  ABI: arm64-v8a
+  NDK: 28.2.13676358
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Check out game source (mod API + android_native_sdk.py)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.game_ref }}
+          persist-credentials: false
+
+      - name: Pin the build identity to this exact game commit
+        run: |
+          commit=$(git rev-parse HEAD)
+          echo "HORIZON_GAME_BUILD_ID=$commit" >> "$GITHUB_ENV"
+          echo "game commit / every mod's identity: $commit"
+
+      - name: Require a token for the private mod-port repository
+        env:
+          TOKEN: ${{ secrets.MOD_PORT_TOKEN }}
+        run: |
+          test -n "$TOKEN" || {
+            echo "secrets.MOD_PORT_TOKEN is required: a PAT with repo scope on bslsjdk/rustling-mod-port"
+            exit 1
+          }
+
+      - name: Check out the private mod-port repo (the built .hmod)
+        uses: actions/checkout@v4
+        with:
+          repository: bslsjdk/rustling-mod-port
+          token: ${{ secrets.MOD_PORT_TOKEN }}
+          path: mod-port
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Install build-tools, platform and NDK (build_apk.py pins)
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "build-tools;35.0.0" "platforms;android-36" "ndk;$NDK" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK" >> "$GITHUB_ENV"
+
+      - name: Install Rust for Android and cargo-ndk (tools/ci/rust-version = 1.99.1)
+        run: |
+          bash tools/ci/rustup_install.sh --profile minimal --component rust-src --target aarch64-linux-android
+          cargo install cargo-ndk --version 3.5.4 --locked
+
+      - name: Make room for the build
+        run: |
+          sudo swapoff -a || true
+          where=/mnt size=20G
+          avail=$(df --output=avail -BG "$where" 2>/dev/null | tail -1 | tr -dc 0-9)
+          if [ "${avail:-0}" -lt 30 ]; then where=$RUNNER_TEMP size=10G; fi
+          sudo fallocate -l "$size" "$where/release.swap"
+          sudo chmod 600 "$where/release.swap"
+          sudo mkswap "$where/release.swap" > /dev/null
+          sudo swapon "$where/release.swap"
+          echo "CARGO_BUILD_JOBS=3" >> "$GITHUB_ENV"
+
+      - name: Unpack the debug key
+        env:
+          KEYSTORE: ${{ secrets.STARLING_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE" || exit 0
+          mkdir -p target/android
+          echo "$KEYSTORE" | base64 -d > target/android/debug.keystore
+
+      - name: Validate the .hmod (refuses [native.*] mixins/bridges)
+        id: hmod
+        env:
+          HMOD_PATH: ${{ inputs.hmod }}
+        run: python3 mod-port/scripts/check_native_hmod.py
+
+      - name: Game and mod API as dylibs (prepare first)
+        run: python3 tools/android_native_sdk.py prepare
+
+      - name: Build the APK baseline
+        env:
+          RUSTFLAGS: -C prefer-dynamic
+          HORIZON_ANDROID_KEY_ALIAS: horizon-debug
+          PROFILE: ${{ inputs.profile }}
+        run: |
+          python3 packaging/android/build_apk.py --abi "$ABI" --profile "$PROFILE" --preview
+          # Snapshot the game's libraries so the mod build can prove it did not replace them.
+          (cd "target/aarch64-linux-android/$PROFILE" && sha256sum libhorizon_android.so deps/lib*.so) > "$RUNNER_TEMP/game.sha256"
+
+      - name: Build the native mod library beside the game
+        env:
+          RUSTFLAGS: -C prefer-dynamic
+          PROFILE: ${{ inputs.profile }}
+          HMOD: ${{ steps.hmod.outputs.hmod }}
+        run: |
+          python3 tools/android_native_sdk.py mods "$RUNNER_TEMP/native-libs" "$HMOD" \
+            --profile "$PROFILE" --abi "$ABI"
+          (cd "target/aarch64-linux-android/$PROFILE" && sha256sum --quiet -c "$RUNNER_TEMP/game.sha256") \
+            || { echo "the mod build changed the game's libraries: it no longer matches the APK"; exit 1; }
+          cat "$RUNNER_TEMP/native-libs/native-mods.json"
+
+      # Expected OUT layout (android_native_sdk.py:228-243): native-mods.json, lib<mod id>.so
+      # and horizon-native-mods/<mod id>/. The packaged id is `tlm_port`, so expect
+      # libtlm_port.so (NOT libtlm.so) and horizon-native-mods/tlm_port/. If the other agent
+      # changes the id, the artifact name and the .so name follow it automatically.
+      # How the phone's app/native-libs folder is filled from this artifact is a downstream
+      # step (game/.../android_lib.rs reads it); not verified here.
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: starling-native-mod-apk-${{ inputs.profile }}
+          path: target/android/starling-*.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload native-libs (native-mods.json + lib*.so + packages)
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-libs-${{ steps.hmod.outputs.mod_id }}
+          path: ${{ runner.temp }}/native-libs
+          if-no-files-found: error
+          retention-days: 7
