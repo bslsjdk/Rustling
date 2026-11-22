@@ -86,16 +86,37 @@ fn native_libraries() -> (
         return Default::default();
     };
     let folder = std::path::PathBuf::from(private).join(NATIVE_LIBRARIES);
+    // Diagnostics into the shared game folder so a player can see them without adb.
+    let diag = |line: &str| {
+        if let Some(home) = std::env::var_os("HORIZON_HOME") {
+            let _ = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(std::path::PathBuf::from(home).join("native-libs-diagnostic.txt"))
+                .and_then(|mut f| {
+                    use std::io::Write;
+                    writeln!(f, "{}", line)
+                });
+        }
+        horizon_client::android::warn(line);
+    };
+    diag(&format!(
+        "native-libs lookup: folder={} index_exists={}",
+        folder.display(),
+        folder.join("native-mods.json").is_file()
+    ));
     if !folder.join("native-mods.json").is_file() {
+        diag("native-libs: no native-mods.json, skipping");
         return Default::default();
     }
     let opened = match horizon_mod_host::open(&folder) {
         Ok(opened) => opened,
         Err(error) => {
-            horizon_client::android::warn(&format!("native mods left out: {error}"));
+            diag(&format!("native mods left out: {error}"));
             return Default::default();
         }
     };
+    diag(&format!("native-libs: opened {} mod(s)", opened.built.len()));
     match horizon_mod_host::packages_beside(&folder, opened.built) {
         Ok(native) => {
             horizon_client::android::set_native_libs_opened(

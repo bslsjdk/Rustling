@@ -432,6 +432,13 @@ fn install_prebuilt_native(path: &Path) -> Result<Installed, String> {
         .map(PathBuf::from)
         .ok_or_else(|| "no private game directory".to_string())?;
     let target = private.join("native-libs");
+    // Diagnostics in the shared game folder so the player can see where the library landed.
+    if let Some(home) = std::env::var_os("HORIZON_HOME") {
+        let _ = fs::write(
+            PathBuf::from(home).join("native-libs-diagnostic.txt"),
+            format!("import installed library to: {}\n", target.display()),
+        );
+    }
     // Stage the whole package under a fresh name, then swap it in: a failed extract leaves the
     // previous install alone. `extract_into` refuses paths that escape the folder.
     let staged = sibling(&target, ".stage");
