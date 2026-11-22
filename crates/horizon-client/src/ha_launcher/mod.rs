@@ -60,8 +60,22 @@ pub(crate) mod diagnostics {
     pub fn previous_unclean(_home: &Path) -> bool {
         crate::diagnostics::previous_unclean(&private())
     }
-    pub fn summary(_home: &Path) -> String {
-        crate::diagnostics::summary(&private())
+    pub fn summary(home: &Path) -> String {
+        let mut text = crate::diagnostics::summary(&private());
+        // Surface native-mod diagnostics on this permanent panel so a mod that loads but does not
+        // draw (or a dropped renderer registration) can be read without adb or a rebuild.
+        for file in ["native-libs-diagnostic.txt", "renderer-diagnostic.txt"] {
+            if let Ok(extra) = std::fs::read_to_string(home.join(file)) {
+                let extra = extra.trim();
+                if !extra.is_empty() {
+                    text.push_str("\n\n");
+                    text.push_str(file);
+                    text.push_str(":\n");
+                    text.push_str(extra);
+                }
+            }
+        }
+        text
     }
     /// The chosen instance's logs and crash reports with the app's diagnostics, in one ZIP.
     pub fn export(home: &Path) -> Result<PathBuf, String> {
