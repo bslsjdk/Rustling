@@ -75,6 +75,10 @@ pub(super) struct EntityRendererTable {
     thrown: Vec<Option<Arc<Resolved<dyn EntityRenderer>>>>,
     /// By the address of the mob type the game shares with every mob of the type.
     living: FxHashMap<usize, Arc<Resolved<dyn EntityRenderer>>>,
+    /// By full type id. A content-declared living type can be known to the entity-type table
+    /// yet absent from this window's `mob_types()` (it lives in the server thread's table), so
+    /// pointer indexing cannot find it; the name keeps its renderer reachable on the client.
+    living_by_id: FxHashMap<String, Arc<Resolved<dyn EntityRenderer>>>,
 }
 
 impl EntityRendererTable {
@@ -91,14 +95,20 @@ impl EntityRendererTable {
         let mut table = Self {
             thrown: thrown.iter().map(|_| None).collect(),
             living: FxHashMap::default(),
+            living_by_id: FxHashMap::default(),
         };
         let mut unknown = Vec::new();
         for (id, renderer) in registered {
             let resolved = || Arc::new(Resolved::new(renderer.clone()));
             if let Some(t) = thrown.iter().find(|t| t.id == id) {
                 table.thrown[t.slot] = Some(resolved());
-            } else if let Some(kind) = mobs.get(id).filter(|_| id != PLAYER) {
-                table.living.insert(Arc::as_ptr(kind) as usize, resolved());
+            } else if id != PLAYER && known(id) {
+                // Always index by name: a living type the game draws as a mob may be absent from
+                // this window's `mobs` table while still being a known content type.
+                table.living_by_id.insert(id.clone(), resolved());
+                if let Some(kind) = mobs.get(id) {
+                    table.living.insert(Arc::as_ptr(kind) as usize, resolved());
+                }
             } else if !known(id) {
                 unknown.push(id.clone());
             }
@@ -113,7 +123,9 @@ impl EntityRendererTable {
 
     /// The renderer of `mob`'s type, when a mod registered one for it.
     pub(super) fn living(&self, mob: &Mob) -> Option<&Arc<Resolved<dyn EntityRenderer>>> {
-        self.living.get(&(Arc::as_ptr(&mob.kind) as usize))
+        self.living
+            .get(&(Arc::as_ptr(&mob.kind) as usize))
+            .or_else(|| self.living_by_id.get(&mob.kind.id))
     }
 }
 
@@ -153,7 +165,7 @@ impl Game<'_> {
                 "Horizon: an entity renderer is registered for {id}, which is no entity type; it is left out"
             );
         }
-        let any_living = !table.living.is_empty();
+        let any_living = !table.living.is_empty() || !table.living_by_id.is_empty();
         *TABLE.write().unwrap_or_else(PoisonError::into_inner) = Some(table);
         ANY_LIVING.store(any_living, Ordering::Relaxed);
         self.resolve_entity_layers(&rows, registered);
