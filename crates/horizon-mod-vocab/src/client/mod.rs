@@ -33,6 +33,7 @@ pub mod hud_mode;
 pub(crate) mod key_mapping;
 pub(crate) mod keyframe_animation;
 pub(crate) mod bedrock_animation;
+pub(crate) mod bedrock_geometry;
 // hidden: a module of game-side types; mods use their re-exports
 #[doc(hidden)]
 pub mod mesher;
