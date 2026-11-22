@@ -167,3 +167,40 @@ jobs:
           path: ${{ runner.temp }}/native-libs
           if-no-files-found: error
           retention-days: 7
+
+      # Package the built library into a single importable .hmod: the game's local import
+      # (crates/horizon-client/src/import.rs) detects native-mods.json + lib*.so and installs
+      # them straight into native-libs/, so the player only imports one file after installing
+      # this matching APK. The root manifest makes classify() accept it as a native mod.
+      - name: Package importable .hmod
+        run: |
+          python3 - <<'PY'
+          import os, zipfile
+          from pathlib import Path
+          src = Path(os.environ["RUNNER_TEMP"]) / "native-libs"
+          mod_id = os.environ["MOD_ID"]
+          name = Path(os.environ["RUNNER_TEMP"]) / f"{mod_id}-installed.hmod"
+          manifest = (
+              f'id = "{mod_id}"\nname = "{mod_id} (prebuilt)"\nversion = "0.1.0"\n'
+              'description = "Prebuilt native library"\napi = "0.2"\nside = "both"\n'
+              'capabilities = []\n\n[native]\n'
+          )
+          with zipfile.ZipFile(name, "w", zipfile.ZIP_DEFLATED) as z:
+              z.writestr("horizon-mod.toml", manifest)
+              z.writestr("horizon-native.json", '{"game":"26.3","id":"%s","schema":1,"version":"0.1.0"}' % mod_id)
+              for p in sorted(src.rglob("*")):
+                  if p.is_file():
+                      z.write(p, p.relative_to(src).as_posix())
+          print(f"packaged {name} ({name.stat().st_size} bytes)")
+          PY
+        env:
+          MOD_ID: ${{ steps.hmod.outputs.mod_id }}
+          RUNNER_TEMP: ${{ runner.temp }}
+
+      - name: Upload importable .hmod
+        uses: actions/upload-artifact@v4
+        with:
+          name: installable-${{ steps.hmod.outputs.mod_id }}-hmod
+          path: ${{ runner.temp }}/*-installed.hmod
+          if-no-files-found: error
+          retention-days: 7
