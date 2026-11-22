@@ -154,6 +154,25 @@ impl Game<'_> {
     pub(in crate::game) fn resolve_entity_renderers(&self) {
         let registered = REGISTERED.get().unwrap_or(&NO_RENDERERS);
         let rows = super::entity_type_rows::entity_type_rows(&self.options.resources);
+        // Diagnostics into the shared game folder: what the mod registered and what the game
+        // knows, so a silence about a renderer can be told apart from a dropped registration.
+        if let Some(home) = std::env::var_os("HORIZON_HOME") {
+            let keys: Vec<_> = registered.keys().collect();
+            let line = format!(
+                "resolve: registered={:?} rows_has_tlm={} mob_types_has_tlm={}\n",
+                keys,
+                rows.contains("tlm:maid"),
+                self.res.mob_types().contains_key("tlm:maid"),
+            );
+            use std::io::Write;
+            if let Ok(mut f) = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(std::path::PathBuf::from(home).join("renderer-diagnostic.txt"))
+            {
+                let _ = f.write_all(line.as_bytes());
+            }
+        }
         let (table, unknown) = EntityRendererTable::resolve(
             registered,
             horizon_client::projectiles::thrown_types(),
